@@ -1,4 +1,5 @@
 # GPU-Aware LLM Serving Runtime
+[![Tests](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml/badge.svg)](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml)
 
 A small local LLM serving runtime focused on the systems work behind inference serving: async request handling, scheduling, batching, streaming, metrics, and reproducible benchmarking.
 
