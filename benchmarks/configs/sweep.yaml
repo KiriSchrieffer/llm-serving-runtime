@@ -1,0 +1,8 @@
+# Sweep benchmark config — thorough batch-size vs timeout tradeoff sweep
+base_url: http://llm-runtime:8000
+concurrency_levels: [1, 4, 8, 16, 32]
+requests_per_level: 64
+max_tokens: 32
+batch_timeout_ms: [0, 5, 10, 25, 50]
+max_batch_size: [2, 4, 8, 16]
+output: benchmarks/results/sweep.json

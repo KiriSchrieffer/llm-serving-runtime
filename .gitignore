@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.DS_Store
+.pytest_cache/
+pytest-cache-files-*/
+.venv/
+.coverage
+htmlcov/
+.ruff_cache/
+dist/
+build/
+.env
+benchmarks/results/*.csv
+benchmarks/results/*.log
+benchmarks/results/smoke/

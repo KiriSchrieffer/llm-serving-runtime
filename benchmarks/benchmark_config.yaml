@@ -1,0 +1,14 @@
+base_url: http://127.0.0.1:8000
+concurrency_levels: [1, 8, 16, 32, 64]
+requests_per_level: 64
+max_tokens: 32
+metrics:
+  - tokens_per_second
+  - p50_latency
+  - p95_latency
+  - ttft
+  - queue_wait_time
+  - batch_size_distribution
+  - gpu_memory
+  - gpu_utilization
+

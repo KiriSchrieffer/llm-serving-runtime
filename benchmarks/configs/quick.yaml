@@ -1,0 +1,8 @@
+# Quick benchmark config — 1-minute smoke test for CI / local dev
+base_url: http://llm-runtime:8000
+concurrency_levels: [1, 4, 8]
+requests_per_level: 16
+max_tokens: 16
+batch_timeout_ms: 25
+max_batch_size: 4
+output: benchmarks/results/quick.json

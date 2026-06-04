@@ -1,0 +1,50 @@
+services:
+  llm-runtime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.example
+    volumes:
+      - ./benchmarks/results:/app/benchmarks/results
+
+  benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      python benchmarks/run_load_test.py
+      --base-url http://llm-runtime:8000
+      --concurrency 8
+      --requests 32
+      --max-tokens 16
+      --output benchmarks/results/quick.json
+    env_file:
+      - .env.benchmark
+    volumes:
+      - ./benchmarks/results:/app/benchmarks/results
+    depends_on:
+      - llm-runtime
+    profiles:
+      - benchmark
+
+  benchmark-full:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      python benchmarks/run_batch_sweep.py
+      --concurrency 64
+      --requests 64
+      --max-tokens 32
+      --batch-sizes 2 4 8 16
+      --timeouts 0 5 10 20
+      --output benchmarks/results/batch_sweep_c64.json
+    env_file:
+      - .env.benchmark
+    volumes:
+      - ./benchmarks/results:/app/benchmarks/results
+    profiles:
+      - benchmark
