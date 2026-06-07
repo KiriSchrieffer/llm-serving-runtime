@@ -5,9 +5,9 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md requirements-dev.txt ./
 COPY src/ src/
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
 COPY benchmarks/ benchmarks/
 COPY docs/ docs/

@@ -78,11 +78,13 @@ Mock-backend runs are complete and documented. The repository also includes CPU-
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -r requirements-dev.txt
 uvicorn llm_runtime.main:app --reload
 ```
 
 On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1`.
+For dependency upgrades, edit `pyproject.toml` first and then refresh
+`requirements-dev.txt` from a tested virtual environment.
 
 Health check:
 

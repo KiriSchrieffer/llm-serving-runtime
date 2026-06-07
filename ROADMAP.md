@@ -8,6 +8,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Three backend adapters (mock, llama.cpp, vLLM)
 - Metrics with Prometheus histograms and structured JSON logging
 - Benchmark scripts and saved result artifacts
+- Pinned development requirements for reproducible CI installs
 - 48 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
@@ -74,11 +75,11 @@ Completed:
 - automated benchmark report generator (`benchmarks/generate_report.py`)
 - documented performance tradeoffs (`docs/performance_tradeoffs.md`)
 - `.env.example` and `.env.benchmark` for all configuration options
+- pinned `requirements-dev.txt` used by local development and GitHub Actions
 
 ## Open Follow-Ups
 
-- Add GitHub Actions for linting and `python -m pytest`
-- Add a lockfile or pinned requirements export for reproducible installs
+- Add linting to GitHub Actions
 - Add real GPU memory/utilization sampling for llama.cpp or vLLM runs
 - Add mixed-priority scheduler benchmarks with starvation/fairness metrics
 - Split generated benchmark reports from curated benchmark summaries
