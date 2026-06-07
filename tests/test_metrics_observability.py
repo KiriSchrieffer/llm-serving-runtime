@@ -43,6 +43,21 @@ def test_histogram_prometheus_output_is_valid():
     assert "llm_queue_wait_seconds_count 2" in output
 
 
+def test_histogram_prometheus_buckets_are_cumulative():
+    hist = Histogram(buckets=[0.1, 0.5, 1.0])
+    hist.observe(0.05)
+    hist.observe(0.4)
+    hist.observe(2.0)
+
+    output = hist.prometheus_lines("llm_test_seconds", "Test histogram.")
+
+    assert 'llm_test_seconds_bucket{le="0.1"} 1' in output
+    assert 'llm_test_seconds_bucket{le="0.5"} 2' in output
+    assert 'llm_test_seconds_bucket{le="1.0"} 2' in output
+    assert 'llm_test_seconds_bucket{le="+Inf"} 3' in output
+    assert "llm_test_seconds_count 3" in output
+
+
 def test_histogram_snapshot_format():
     hist = Histogram()
     hist.observe(0.1)
@@ -166,5 +181,18 @@ def test_prometheus_output_retains_percentile_gauges():
             json={"messages": [{"role": "user", "content": "hello"}], "max_tokens": 1},
         )
         prom = client.get("/metrics", headers={"accept": "text/plain"}).text
-    assert "llm_queue_wait_seconds" in prom
-    assert "llm_ttft_seconds" in prom
+    assert "llm_queue_wait_quantile_seconds" in prom
+    assert "llm_ttft_quantile_seconds" in prom
+
+
+def test_prometheus_quantile_gauges_use_seconds_and_distinct_names():
+    collector = MetricsCollector()
+    collector.queue_wait_times.extend([0.25, 0.5, 1.0])
+    collector.queue_wait_histogram.observe(0.5)
+
+    prom = collector.snapshot_prometheus()
+
+    assert "# TYPE llm_queue_wait_quantile_seconds gauge" in prom
+    assert 'llm_queue_wait_quantile_seconds{quantile="0.5"} 0.5' in prom
+    assert "# TYPE llm_queue_wait_seconds histogram" in prom
+    assert "# TYPE llm_queue_wait_seconds gauge" not in prom

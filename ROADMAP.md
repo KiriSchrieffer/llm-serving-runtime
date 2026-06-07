@@ -8,7 +8,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Three backend adapters (mock, llama.cpp, vLLM)
 - Metrics with Prometheus histograms and structured JSON logging
 - Benchmark scripts and saved result artifacts
-- 46 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 48 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -49,7 +49,7 @@ Completed:
 
 - Prometheus-style metrics export (JSON and text exposition format)
 - latency histograms with predefined buckets for queue wait, TTFT, and total latency
-- Prometheus histogram type output (bucket / sum / count per metric)
+- Prometheus histogram type output with cumulative buckets, sum, and count
 - structured JSON request lifecycle logging with request_id correlation
 - structured logs integrated into API routes, worker manager, and lifecycle
 
@@ -79,7 +79,6 @@ Completed:
 
 - Add GitHub Actions for linting and `python -m pytest`
 - Add a lockfile or pinned requirements export for reproducible installs
-- Fix Prometheus histogram cumulative bucket semantics and unit naming
 - Add real GPU memory/utilization sampling for llama.cpp or vLLM runs
 - Add mixed-priority scheduler benchmarks with starvation/fairness metrics
 - Split generated benchmark reports from curated benchmark summaries

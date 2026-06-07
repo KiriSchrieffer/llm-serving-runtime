@@ -10,11 +10,12 @@ _LATENCY_BUCKETS: list[float] = [
 
 
 class Histogram:
-    """A simple cumulative histogram with predefined bucket boundaries.
+    """A simple latency histogram with predefined bucket boundaries.
 
     Each observation is counted into the first bucket whose upper bound is
     greater than or equal to the observed value. Observations larger than
-    the largest bucket are counted in a trailing ``+Inf`` bucket.
+    the largest bucket are counted in a trailing ``+Inf`` bucket. Prometheus
+    export emits cumulative bucket counts, as required by its histogram format.
     """
 
     def __init__(self, buckets: list[float] | None = None) -> None:
@@ -47,9 +48,11 @@ class Histogram:
         _add = lines.append
         _add(f"# HELP {name} {help_text}")
         _add(f"# TYPE {name} histogram")
+        cumulative = 0
         for idx, boundary in enumerate(self._boundaries):
-            _add(f'{name}_bucket{{le="{boundary}"}} {self._counts[idx]}')
-        _add(f'{name}_bucket{{le="+Inf"}} {self._counts[-1]}')
+            cumulative += self._counts[idx]
+            _add(f'{name}_bucket{{le="{boundary}"}} {cumulative}')
+        _add(f'{name}_bucket{{le="+Inf"}} {self._total}')
         _add(f"{name}_sum {self._sum}")
         _add(f"{name}_count {self._total}")
         return "\n".join(lines) + "\n"
@@ -138,7 +141,6 @@ class MetricsCollector:
         """Return runtime metrics as Prometheus exposition-format text."""
         lines: list[str] = []
         _add = lines.append
-        _to_ms = lambda s: round(s * 1000, 2)
 
         _add("# HELP llm_requests_total Total requests received.")
         _add("# TYPE llm_requests_total counter")
@@ -176,18 +178,18 @@ class MetricsCollector:
         _add("# TYPE llm_batch_size_max gauge")
         _add(f"llm_batch_size_max {max(self.batch_sizes, default=0)}")
 
-        # Per-latency summary gauges (backward compatible)
+        # Per-latency quantile gauges. Histogram metrics keep the base names.
         for name, values in [
-            ("llm_queue_wait_seconds", self.queue_wait_times),
-            ("llm_ttft_seconds", self.ttft_times),
-            ("llm_total_latency_seconds", self.total_latencies),
+            ("llm_queue_wait_quantile_seconds", self.queue_wait_times),
+            ("llm_ttft_quantile_seconds", self.ttft_times),
+            ("llm_total_latency_quantile_seconds", self.total_latencies),
         ]:
             _add("")
-            _add(f"# HELP {name} Latency distribution.")
+            _add(f"# HELP {name} Latency quantiles in seconds.")
             _add(f"# TYPE {name} gauge")
-            _add(f'{name}{{quantile="p50"}} {_to_ms(percentile(values, 50))}')
-            _add(f'{name}{{quantile="p95"}} {_to_ms(percentile(values, 95))}')
-            _add(f'{name}{{quantile="p99"}} {_to_ms(percentile(values, 99))}')
+            _add(f'{name}{{quantile="0.5"}} {percentile(values, 50)}')
+            _add(f'{name}{{quantile="0.95"}} {percentile(values, 95)}')
+            _add(f'{name}{{quantile="0.99"}} {percentile(values, 99)}')
 
         # Histogram metrics
         for name, histogram, help_text in [

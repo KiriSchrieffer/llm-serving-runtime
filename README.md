@@ -49,7 +49,7 @@ What is implemented and tested:
 - batch size, queue wait, TTFT, total latency, and token metrics
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
-- pytest coverage for core paths (46 test cases)
+- pytest coverage for core paths (48 test cases)
 
 Known limitations:
 
