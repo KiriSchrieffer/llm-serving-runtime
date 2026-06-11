@@ -64,15 +64,24 @@ class WorkerManager:
             await self._execute_batch(batch)
 
     async def _execute_batch(self, batch: Batch) -> None:
-        items = {item.request.request_id: item for item in batch.items}
+        active_items = [item for item in batch.items if not item.cancelled]
+        if not active_items:
+            return
+
+        items = {item.request.request_id: item for item in active_items}
         tokens = {request_id: [] for request_id in items}
         pending = set(items)
         batch_start = perf_counter()
         try:
             async for event in self.backend.generate_batch(
-                [item.request for item in batch.items]
+                [item.request for item in active_items]
             ):
+                if event.request_id not in pending:
+                    continue
                 item = items[event.request_id]
+                if item.cancelled:
+                    pending.discard(event.request_id)
+                    continue
                 if isinstance(event, BatchToken):
                     item.request.mark_first_token()
                     tokens[event.request_id].append(event.token)
@@ -83,14 +92,20 @@ class WorkerManager:
                     pending.discard(event.request_id)
 
             for request_id in pending:
-                self._complete_item(items[request_id], tokens[request_id], batch_start)
+                item = items[request_id]
+                if not item.cancelled:
+                    self._complete_item(item, tokens[request_id], batch_start)
         except Exception as exc:
             for request_id in pending:
-                await self._fail_item(items[request_id], exc)
+                item = items[request_id]
+                if not item.cancelled:
+                    await self._fail_item(item, exc)
 
     def _complete_item(
         self, item: ScheduledRequest, tokens: list[str], batch_start: float
     ) -> None:
+        if item.cancelled:
+            return
         item.request.mark_completed()
         elapsed_ms = (perf_counter() - batch_start) * 1000
         if isinstance(item.handle, CompletionHandle):
@@ -99,6 +114,8 @@ class WorkerManager:
                     GenerationResult(request_id=item.request.request_id, tokens=tokens)
                 )
         elif isinstance(item.handle, StreamingHandle):
+            if item.handle.cancelled:
+                return
             item.handle.queue.put_nowait(CompletedEvent())
         self.metrics.record_success(item.request, generated_tokens=len(tokens))
         self.request_logger.request_completed(
@@ -108,6 +125,8 @@ class WorkerManager:
         )
 
     async def _fail_item(self, item: ScheduledRequest, exc: Exception) -> None:
+        if item.cancelled:
+            return
         self.metrics.record_failure(item.request)
         self.request_logger.request_failed(
             request_id=item.request.request_id, error=str(exc)

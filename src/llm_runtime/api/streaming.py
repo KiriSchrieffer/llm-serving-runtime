@@ -1,8 +1,12 @@
-import asyncio
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 
-from llm_runtime.core.response import CompletedEvent, ErrorEvent, StreamEvent, TokenEvent
+from llm_runtime.core.response import (
+    CompletedEvent,
+    ErrorEvent,
+    StreamingHandle,
+    TokenEvent,
+)
 
 
 def sse_event(payload: dict[str, object]) -> str:
@@ -14,30 +18,38 @@ def sse_event(payload: dict[str, object]) -> str:
 async def chat_completion_stream(
     request_id: str,
     model: str,
-    events: asyncio.Queue[StreamEvent],
+    handle: StreamingHandle,
+    on_cancel: Callable[[], Awaitable[None]] | None = None,
 ) -> AsyncIterator[str]:
     """Convert per-request worker events into OpenAI-style streaming chunks."""
 
-    while True:
-        event = await events.get()
-        if isinstance(event, TokenEvent):
-            yield sse_event(
-                {
-                    "id": request_id,
-                    "object": "chat.completion.chunk",
-                    "model": model,
-                    "choices": [
-                        {
-                            "index": 0,
-                            "delta": {"content": event.token},
-                            "finish_reason": None,
-                        }
-                    ],
-                }
-            )
-        elif isinstance(event, CompletedEvent):
-            yield "data: [DONE]\n\n"
-            return
-        elif isinstance(event, ErrorEvent):
-            yield sse_event({"error": {"message": event.message}})
-            return
+    try:
+        while True:
+            event = await handle.queue.get()
+            if isinstance(event, TokenEvent):
+                yield sse_event(
+                    {
+                        "id": request_id,
+                        "object": "chat.completion.chunk",
+                        "model": model,
+                        "choices": [
+                            {
+                                "index": 0,
+                                "delta": {"content": event.token},
+                                "finish_reason": None,
+                            }
+                        ],
+                    }
+                )
+            elif isinstance(event, CompletedEvent):
+                handle.mark_completed()
+                yield "data: [DONE]\n\n"
+                return
+            elif isinstance(event, ErrorEvent):
+                handle.mark_completed()
+                yield sse_event({"error": {"message": event.message}})
+                return
+    finally:
+        if handle.cancel():
+            if on_cancel is not None:
+                await on_cancel()

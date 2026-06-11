@@ -1,3 +1,4 @@
+import asyncio
 from time import perf_counter
 
 from fastapi import APIRouter, HTTPException, Request
@@ -58,8 +59,21 @@ async def create_chat_completion(body: ChatCompletionRequest, http_request: Requ
             ScheduledRequest(request=runtime_request, handle=handle)
         )
         services.request_logger.request_enqueued(runtime_request.request_id)
+
+        async def cancel_stream() -> None:
+            services.metrics.record_failure(runtime_request)
+            services.request_logger.request_failed(
+                request_id=runtime_request.request_id,
+                error="stream disconnected",
+            )
+
         return StreamingResponse(
-            chat_completion_stream(runtime_request.request_id, body.model, handle.queue),
+            chat_completion_stream(
+                runtime_request.request_id,
+                body.model,
+                handle,
+                on_cancel=cancel_stream,
+            ),
             media_type="text/event-stream",
         )
 
@@ -68,9 +82,27 @@ async def create_chat_completion(body: ChatCompletionRequest, http_request: Requ
     services.request_logger.request_enqueued(runtime_request.request_id)
     t0 = perf_counter()
     try:
-        result = await handle.future
+        result = await asyncio.wait_for(
+            asyncio.shield(handle.future),
+            timeout=services.request_timeout_s,
+        )
+    except TimeoutError as exc:
+        handle.cancel()
+        services.metrics.record_failure(runtime_request)
+        services.request_logger.request_failed(
+            request_id=runtime_request.request_id,
+            error=f"request timed out after {services.request_timeout_s:.3f}s",
+        )
+        raise HTTPException(status_code=504, detail="request timed out") from exc
+    except asyncio.CancelledError:
+        handle.cancel()
+        services.metrics.record_failure(runtime_request)
+        services.request_logger.request_failed(
+            request_id=runtime_request.request_id,
+            error="client disconnected",
+        )
+        raise
     except Exception as exc:
-        elapsed_ms = (perf_counter() - t0) * 1000
         services.request_logger.request_failed(
             request_id=runtime_request.request_id, error=str(exc)
         )

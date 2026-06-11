@@ -9,7 +9,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Metrics with Prometheus histograms and structured JSON logging
 - Benchmark scripts and saved result artifacts
 - Pinned development requirements for reproducible CI installs
-- 48 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 50 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -37,6 +37,7 @@ Completed:
 - dynamic batching queue with max batch size and timeout
 - worker loop that forms and executes mock batches
 - token routing for mixed completion and streaming handles
+- request timeout and streaming disconnect cancellation paths
 - batch size, queue wait, token count, and TTFT measurements
 - FIFO baseline and dynamic batching benchmark entrypoint
 - first mock-backend benchmark report across concurrency levels 1, 8, 16, 32, and 64

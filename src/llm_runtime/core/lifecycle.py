@@ -60,6 +60,7 @@ class RuntimeServices:
     scheduler: Scheduler
     manager: WorkerManager
     request_logger: RequestLogger
+    request_timeout_s: float
 
     @classmethod
     def create(
@@ -86,6 +87,7 @@ class RuntimeServices:
             scheduler=scheduler,
             manager=manager,
             request_logger=request_logger,
+            request_timeout_s=configured.request_timeout_s,
         )
 
     async def start(self) -> None:

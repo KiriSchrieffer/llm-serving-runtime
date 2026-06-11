@@ -1,4 +1,5 @@
 import asyncio
+import time
 from collections.abc import AsyncIterator
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
@@ -26,6 +27,12 @@ class FailingBackend(Backend):
     async def generate(self, request: RuntimeRequest) -> AsyncIterator[str]:
         raise RuntimeError("simulated backend failure")
         yield ""
+
+
+class SlowBackend(Backend):
+    async def generate(self, request: RuntimeRequest) -> AsyncIterator[str]:
+        await asyncio.sleep(0.05)
+        yield "late_token "
 
 
 class PromptBatchBackend(PromptTokenBackend):
@@ -102,6 +109,34 @@ def test_backend_failure_reaches_api_and_metrics() -> None:
     assert response.json()["detail"] == "simulated backend failure"
     assert metrics["failed_count"] == 1
     assert metrics["active_requests"] == 0
+
+
+def test_non_streaming_request_timeout_cancels_late_worker_completion() -> None:
+    services = RuntimeServices.create(
+        settings=Settings(request_timeout_s=0.01),
+        backend=SlowBackend(),
+    )
+
+    with TestClient(create_app(services)) as client:
+        response = client.post(
+            "/v1/chat/completions",
+            json={
+                "messages": [{"role": "user", "content": "too slow"}],
+                "max_tokens": 1,
+            },
+        )
+        immediate_metrics = client.get("/metrics").json()
+        time.sleep(0.08)
+        final_metrics = client.get("/metrics").json()
+
+    assert response.status_code == 504
+    assert response.json()["detail"] == "request timed out"
+    assert immediate_metrics["failed_count"] == 1
+    assert immediate_metrics["active_requests"] == 0
+    assert final_metrics["completed_count"] == 0
+    assert final_metrics["failed_count"] == 1
+    assert final_metrics["active_requests"] == 0
+    assert final_metrics["generated_tokens_total"] == 0
 
 
 def test_dynamic_batch_routes_non_streaming_results_and_records_metrics() -> None:

@@ -45,11 +45,12 @@ What is implemented and tested:
 - vLLM backend adapter with `vllm serve` subprocess lifecycle
 - background async worker execution with per-request response channels
 - dynamic micro-batching with configurable maximum size and collection timeout
+- non-streaming request timeout handling and streaming disconnect cancellation
 - batch-aware mock backend with shared prefill/decode simulation
 - batch size, queue wait, TTFT, total latency, and token metrics
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
-- pytest coverage for core paths (48 test cases)
+- pytest coverage for core paths (50 test cases)
 
 Known limitations:
 
