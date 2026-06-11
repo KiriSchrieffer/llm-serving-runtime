@@ -42,11 +42,28 @@ Alder Lake backend).
 
 ## FIFO vs Priority Scheduling
 
+Mixed-priority benchmark command:
+
+```bash
+python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/results/priority_scheduler_mixed.json
+```
+
+Default workload: 24 low-priority requests at time zero, then 8 high-priority
+requests after 40 ms. Mock latency is 25 ms prefill / 10 ms decode, with
+`max_batch_size=4` and `batch_timeout_ms=0`.
+
 | Metric | FIFO | Priority |
-|---|---|---|
-| Queue wait variance | Uniform (fair) | Higher for low-priority requests |
-| Worst-case starvation | None | Low-priority requests starved under high high-priority load |
-| Use case | Uniform workloads | Mixed-criticality workloads (e.g., interactive vs batch) |
+|---|---:|---:|
+| High-priority avg TTFT | 1.002s | 0.194s |
+| High-priority P95 TTFT | 1.037s | 0.229s |
+| Low-priority avg queue wait | 0.400s | 0.521s |
+| Low-priority P95 queue wait | 0.800s | 0.944s |
+| Queue-wait Jain fairness | 0.854 | 0.776 |
+| Low-priority starved fraction | 16.7% | 33.3% |
+
+Priority scheduling improved high-priority average TTFT by 80.6%, while
+increasing low-priority average queue wait by 30.2%. The fairness index drops
+because strict priority intentionally skews service toward urgent requests.
 
 ### Key Observations
 

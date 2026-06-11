@@ -31,10 +31,27 @@ Set the scheduler type via the LLM_RUNTIME_SCHEDULER environment variable:
 - `LLM_RUNTIME_SCHEDULER=fifo` (default) uses `FIFOScheduler`
 - `LLM_RUNTIME_SCHEDULER=priority` uses `PriorityScheduler`
 
-### Benchmarking Plan
+### Priority Scheduler Benchmark
 
-Planned priority scheduler benchmarks will compare:
+The repository includes a mixed-priority benchmark that compares FIFO against
+PriorityScheduler without requiring an HTTP server:
 
-- FIFO baseline vs priority scheduling under mixed-priority workloads
-- Whether high-priority requests improve TTFT at the cost of low-priority queue wait time
-- Batch size distribution under priority-aware batch formation
+```bash
+python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/results/priority_scheduler_mixed.json
+```
+
+The default workload enqueues 24 low-priority requests at time zero, then injects
+8 high-priority requests after 40 ms. It uses the mock backend with 25 ms prefill,
+10 ms decode, and software batches of 4 requests.
+
+The benchmark records:
+
+- high-priority TTFT (`created_at` to `first_token_at`)
+- low-priority queue wait (`enqueued_at` to `started_at`)
+- low-priority starvation count over a configurable queue-wait threshold
+- Jain fairness index over inverse average queue wait, where `1.0` means equal delay
+- FIFO vs priority deltas for high-priority TTFT and low-priority queue wait
+
+The saved artifact is intentionally self-describing: workload parameters, raw
+per-request observations, grouped summaries, comparison metrics, and metric notes
+are all stored together.

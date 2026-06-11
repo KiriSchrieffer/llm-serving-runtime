@@ -48,9 +48,11 @@ What is implemented and tested:
 - non-streaming request timeout handling and streaming disconnect cancellation
 - batch-aware mock backend with shared prefill/decode simulation
 - batch size, queue wait, TTFT, total latency, and token metrics
+- priority scheduler benchmark with high-priority TTFT, low-priority queue wait,
+  starvation, and fairness metrics
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
-- pytest coverage for core paths (50 test cases)
+- pytest coverage for core paths (53 test cases)
 
 Known limitations:
 
@@ -71,6 +73,7 @@ Benchmark scripts and saved artifacts track:
 - TTFT
 - queue wait time
 - batch size distribution
+- priority scheduling fairness/starvation tradeoffs
 
 Mock-backend runs are complete and documented. The repository also includes CPU-only llama.cpp notes to show how mock results differ from a real backend.
 
@@ -144,6 +147,17 @@ Run a fixed high-concurrency parameter sweep:
 $env:PYTHONPATH="src"; python benchmarks/run_batch_sweep.py --concurrency 64 --requests 64 --max-tokens 32 --batch-sizes 2 4 8 16 --timeouts 0 5 10 20 --prefill-latency-ms 25 --decode-latency-ms 10 --output benchmarks/results/batch_sweep_c64.json
 python benchmarks/analyze_batch_sweep.py --sweep benchmarks/results/batch_sweep_c64.json --baseline benchmarks/results/fifo_baseline.json --ttft-budget-ms 1000
 ```
+
+Run the mixed-priority scheduler benchmark:
+
+```bash
+python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/results/priority_scheduler_mixed.json
+```
+
+The default workload creates a low-priority backlog, injects high-priority
+requests after 40 ms, and compares FIFO against priority scheduling. The saved
+artifact reports high-priority TTFT, low-priority queue wait, Jain fairness over
+inverse queue wait, and low-priority starvation counts.
 
 To manually run a server with dynamic batching enabled:
 

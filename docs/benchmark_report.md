@@ -135,10 +135,38 @@ reproducible.
 python benchmarks/run_batch_sweep.py --backend mock --scheduler fifo --concurrency 64 --batch-sizes 2 4 8 16 --timeouts 0 5 10 20
 `
 
+## Mixed-Priority Scheduler Benchmark
+
+Recorded on June 11, 2026 using the mock backend. The workload enqueues
+24 low-priority requests at time zero, then injects 8 high-priority requests
+after 40 ms. Mock latency settings are 25 ms prefill and 10 ms decode.
+The scheduler forms batches of 4 requests with no collection timeout.
+
+Raw result artifact: `benchmarks/results/priority_scheduler_mixed.json`.
+
+| Metric | FIFO | Priority |
+| --- | ---: | ---: |
+| High-priority avg TTFT | 1.002s | 0.194s |
+| High-priority P95 TTFT | 1.037s | 0.229s |
+| Low-priority avg queue wait | 0.400s | 0.521s |
+| Low-priority P95 queue wait | 0.800s | 0.944s |
+| Queue-wait Jain fairness | 0.854 | 0.776 |
+| Low-priority starved fraction | 16.7% | 33.3% |
+
+Priority scheduling improves high-priority average TTFT by 80.6%, but it
+increases low-priority average queue wait by 30.2% and doubles the fraction
+of low-priority requests above the 750 ms starvation threshold. This is the
+intended tradeoff for strict priority: urgent interactive work starts much
+sooner, while background work gives up fairness.
+
+Reproduce:
+
+```bash
+python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/results/priority_scheduler_mixed.json
+```
+
 ## Next Experiments
 
-- **Priority scheduling benchmark**: compare FIFO vs Priority under mixed-priority
-  workloads using --scheduler priority.
 - **Real model at higher concurrency**: repeat the concurrency matrix with the
   llama.cpp backend to observe real inference latency, throughput, and TTFT.
 - **Backend comparison**: mock vs llama.cpp latency profiles under identical

@@ -1,0 +1,755 @@
+{
+  "recorded_at_utc": "2026-06-11T06:53:28.429603+00:00",
+  "workload": {
+    "low_requests": 24,
+    "high_requests": 8,
+    "high_arrival_delay_ms": 40,
+    "low_priority": 10,
+    "high_priority": 0,
+    "low_max_tokens": 12,
+    "high_max_tokens": 4,
+    "prefill_latency_ms": 25,
+    "decode_latency_ms": 10,
+    "max_batch_size": 4,
+    "batch_timeout_ms": 0
+  },
+  "runs": {
+    "fifo": {
+      "scheduler": "fifo",
+      "observations": [
+        {
+          "label": "low-000",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000196,
+          "ttft_s": 0.03686,
+          "total_latency_s": 0.159952,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-001",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000171,
+          "ttft_s": 0.036847,
+          "total_latency_s": 0.160041,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-002",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000159,
+          "ttft_s": 0.036837,
+          "total_latency_s": 0.16004,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-003",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000151,
+          "ttft_s": 0.03683,
+          "total_latency_s": 0.160037,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-004",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.160086,
+          "ttft_s": 0.197358,
+          "total_latency_s": 0.319626,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-005",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.16008,
+          "ttft_s": 0.197355,
+          "total_latency_s": 0.319633,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-006",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.160073,
+          "ttft_s": 0.197349,
+          "total_latency_s": 0.319634,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-007",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.160068,
+          "ttft_s": 0.197344,
+          "total_latency_s": 0.319631,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-008",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.319693,
+          "ttft_s": 0.356974,
+          "total_latency_s": 0.480997,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-009",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.319688,
+          "ttft_s": 0.356975,
+          "total_latency_s": 0.48101,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-010",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.319682,
+          "ttft_s": 0.35697,
+          "total_latency_s": 0.481008,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-011",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.319671,
+          "ttft_s": 0.35696,
+          "total_latency_s": 0.481003,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-012",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.481008,
+          "ttft_s": 0.518221,
+          "total_latency_s": 0.640922,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-013",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.481002,
+          "ttft_s": 0.518218,
+          "total_latency_s": 0.640939,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-014",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.480996,
+          "ttft_s": 0.518213,
+          "total_latency_s": 0.640938,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-015",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.480991,
+          "ttft_s": 0.518208,
+          "total_latency_s": 0.640936,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-016",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.640949,
+          "ttft_s": 0.678148,
+          "total_latency_s": 0.800139,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-017",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.640944,
+          "ttft_s": 0.678145,
+          "total_latency_s": 0.800149,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-018",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.640936,
+          "ttft_s": 0.678138,
+          "total_latency_s": 0.800146,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-019",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.64093,
+          "ttft_s": 0.678133,
+          "total_latency_s": 0.800145,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-020",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.80015,
+          "ttft_s": 0.838294,
+          "total_latency_s": 0.968573,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-021",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.800145,
+          "ttft_s": 0.838295,
+          "total_latency_s": 0.968613,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-022",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.800139,
+          "ttft_s": 0.838293,
+          "total_latency_s": 0.968614,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-023",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.800133,
+          "ttft_s": 0.83829,
+          "total_latency_s": 0.968612,
+          "completion_tokens": 12
+        },
+        {
+          "label": "high-000",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.929516,
+          "ttft_s": 0.966729,
+          "total_latency_s": 1.000108,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-001",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.929502,
+          "ttft_s": 0.966715,
+          "total_latency_s": 1.000103,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-002",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.929493,
+          "ttft_s": 0.966706,
+          "total_latency_s": 1.000098,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-003",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.929486,
+          "ttft_s": 0.9667,
+          "total_latency_s": 1.000095,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-004",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 1.0001,
+          "ttft_s": 1.037325,
+          "total_latency_s": 1.070638,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-005",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 1.000094,
+          "ttft_s": 1.037321,
+          "total_latency_s": 1.070647,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-006",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 1.000084,
+          "ttft_s": 1.037312,
+          "total_latency_s": 1.070643,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-007",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 1.000077,
+          "ttft_s": 1.037306,
+          "total_latency_s": 1.070641,
+          "completion_tokens": 4
+        }
+      ],
+      "summary": {
+        "request_count": 32,
+        "high_priority": {
+          "count": 8,
+          "queue_wait_avg_s": 0.964794,
+          "queue_wait_p50_s": 0.964797,
+          "queue_wait_p95_s": 1.000098,
+          "queue_wait_max_s": 1.0001,
+          "ttft_avg_s": 1.002014,
+          "ttft_p50_s": 1.002018,
+          "ttft_p95_s": 1.037323,
+          "total_latency_avg_s": 1.035372,
+          "total_latency_p95_s": 1.070646
+        },
+        "low_priority": {
+          "count": 24,
+          "queue_wait_avg_s": 0.400335,
+          "queue_wait_p50_s": 0.400342,
+          "queue_wait_p95_s": 0.800144,
+          "queue_wait_max_s": 0.80015,
+          "ttft_avg_s": 0.437636,
+          "ttft_p50_s": 0.437592,
+          "ttft_p95_s": 0.838293,
+          "total_latency_avg_s": 0.561722,
+          "total_latency_p95_s": 0.968613
+        },
+        "fairness": {
+          "queue_wait_jain_index": 0.853994,
+          "low_to_high_queue_wait_ratio": 0.414944
+        },
+        "starvation": {
+          "threshold_s": 0.75,
+          "low_starved_count": 4,
+          "low_starved_fraction": 0.166667,
+          "low_queue_wait_max_s": 0.80015
+        }
+      }
+    },
+    "priority": {
+      "scheduler": "priority",
+      "observations": [
+        {
+          "label": "low-000",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.0007,
+          "ttft_s": 0.041597,
+          "total_latency_s": 0.163304,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-001",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000684,
+          "ttft_s": 0.04158,
+          "total_latency_s": 0.163297,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-002",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000675,
+          "ttft_s": 0.041573,
+          "total_latency_s": 0.163292,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-003",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.000668,
+          "ttft_s": 0.041566,
+          "total_latency_s": 0.163287,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-004",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.304185,
+          "ttft_s": 0.341548,
+          "total_latency_s": 0.467729,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-005",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.30412,
+          "ttft_s": 0.34148,
+          "total_latency_s": 0.467667,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-006",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.304093,
+          "ttft_s": 0.341457,
+          "total_latency_s": 0.467654,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-007",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.30407,
+          "ttft_s": 0.341436,
+          "total_latency_s": 0.467644,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-008",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.467636,
+          "ttft_s": 0.50482,
+          "total_latency_s": 0.625865,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-009",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.467614,
+          "ttft_s": 0.504801,
+          "total_latency_s": 0.625877,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-010",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.467593,
+          "ttft_s": 0.50478,
+          "total_latency_s": 0.625869,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-011",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.467571,
+          "ttft_s": 0.504759,
+          "total_latency_s": 0.62586,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-012",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.625843,
+          "ttft_s": 0.662149,
+          "total_latency_s": 0.785098,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-013",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.625803,
+          "ttft_s": 0.662114,
+          "total_latency_s": 0.785069,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-014",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.625777,
+          "ttft_s": 0.662091,
+          "total_latency_s": 0.785047,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-015",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.625755,
+          "ttft_s": 0.662071,
+          "total_latency_s": 0.785027,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-016",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.785027,
+          "ttft_s": 0.822611,
+          "total_latency_s": 0.944225,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-017",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.785006,
+          "ttft_s": 0.822598,
+          "total_latency_s": 0.944239,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-018",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.784985,
+          "ttft_s": 0.822581,
+          "total_latency_s": 0.944235,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-019",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.784964,
+          "ttft_s": 0.822564,
+          "total_latency_s": 0.944229,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-020",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.944241,
+          "ttft_s": 0.980555,
+          "total_latency_s": 1.10396,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-021",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.944219,
+          "ttft_s": 0.980536,
+          "total_latency_s": 1.103973,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-022",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.944198,
+          "ttft_s": 0.980516,
+          "total_latency_s": 1.103966,
+          "completion_tokens": 12
+        },
+        {
+          "label": "low-023",
+          "priority_class": "low",
+          "priority": 10,
+          "arrival_offset_ms": 0,
+          "queue_wait_s": 0.944178,
+          "ttft_s": 0.980496,
+          "total_latency_s": 1.103958,
+          "completion_tokens": 12
+        },
+        {
+          "label": "high-000",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.121683,
+          "ttft_s": 0.159017,
+          "total_latency_s": 0.191688,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-001",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.121667,
+          "ttft_s": 0.159006,
+          "total_latency_s": 0.191702,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-002",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.121658,
+          "ttft_s": 0.159,
+          "total_latency_s": 0.191709,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-003",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.121651,
+          "ttft_s": 0.158996,
+          "total_latency_s": 0.191715,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-004",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.191764,
+          "ttft_s": 0.228972,
+          "total_latency_s": 0.262449,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-005",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.191757,
+          "ttft_s": 0.228969,
+          "total_latency_s": 0.262524,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-006",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.191751,
+          "ttft_s": 0.228964,
+          "total_latency_s": 0.262541,
+          "completion_tokens": 4
+        },
+        {
+          "label": "high-007",
+          "priority_class": "high",
+          "priority": 0,
+          "arrival_offset_ms": 40,
+          "queue_wait_s": 0.191745,
+          "ttft_s": 0.228958,
+          "total_latency_s": 0.262549,
+          "completion_tokens": 4
+        }
+      ],
+      "summary": {
+        "request_count": 32,
+        "high_priority": {
+          "count": 8,
+          "queue_wait_avg_s": 0.15671,
+          "queue_wait_p50_s": 0.156714,
+          "queue_wait_p95_s": 0.191761,
+          "queue_wait_max_s": 0.191764,
+          "ttft_avg_s": 0.193985,
+          "ttft_p50_s": 0.193987,
+          "ttft_p95_s": 0.228971,
+          "total_latency_avg_s": 0.22711,
+          "total_latency_p95_s": 0.262546
+        },
+        "low_priority": {
+          "count": 24,
+          "queue_wait_avg_s": 0.521234,
+          "queue_wait_p50_s": 0.546695,
+          "queue_wait_p95_s": 0.944216,
+          "queue_wait_max_s": 0.944241,
+          "ttft_avg_s": 0.558845,
+          "ttft_p50_s": 0.583445,
+          "ttft_p95_s": 0.980533,
+          "total_latency_avg_s": 0.681682,
+          "total_latency_p95_s": 1.103965
+        },
+        "fairness": {
+          "queue_wait_jain_index": 0.775728,
+          "low_to_high_queue_wait_ratio": 3.326114
+        },
+        "starvation": {
+          "threshold_s": 0.75,
+          "low_starved_count": 8,
+          "low_starved_fraction": 0.333333,
+          "low_queue_wait_max_s": 0.944241
+        }
+      }
+    }
+  },
+  "comparison": {
+    "high_priority_ttft_delta_s": -0.808029,
+    "high_priority_ttft_improvement_pct": 80.640474,
+    "low_priority_queue_wait_delta_s": 0.120899,
+    "low_priority_queue_wait_increase_pct": 30.199368,
+    "fairness_jain_delta": -0.078266
+  },
+  "metric_notes": {
+    "ttft_s": "created_at to first_token_at",
+    "queue_wait_s": "enqueued_at to started_at",
+    "queue_wait_jain_index": "Jain index over inverse average queue wait; 1.0 is equal delay",
+    "starvation": "Low-priority requests whose queue wait exceeds threshold_s"
+  }
+}
