@@ -19,6 +19,22 @@ The goal is to make tradeoffs visible:
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    Client["HTTP / SSE client"] --> API["FastAPI API<br/>/v1/chat/completions"]
+    API --> Request["RuntimeRequest<br/>priority, stream flag, timing"]
+    Request --> Scheduler["Scheduler<br/>FIFO or priority"]
+    Scheduler --> Worker["WorkerManager<br/>batch formation + dispatch"]
+    Worker --> Backend["Backend adapter<br/>mock / llama.cpp / vLLM"]
+    Backend --> Worker
+    Worker --> Handles["CompletionHandle / StreamingHandle"]
+    Handles --> API
+    API --> Client
+    Worker --> Metrics["MetricsCollector<br/>queue wait, TTFT, latency"]
+    API --> MetricsEndpoint["/metrics<br/>JSON or Prometheus"]
+    Metrics --> MetricsEndpoint
+```
+
 The runtime has these layers:
 
 - **API layer**: FastAPI routes for health, metrics, and OpenAI-style chat completions.
@@ -102,12 +118,53 @@ Runtime metrics:
 curl http://127.0.0.1:8000/metrics
 ```
 
+Abbreviated JSON output after a small mock request:
+
+```json
+{
+  "request_count": 1,
+  "completed_count": 1,
+  "failed_count": 0,
+  "active_requests": 0,
+  "generated_tokens_total": 4,
+  "batch_count": 1,
+  "batch_size_avg": 1.0,
+  "batch_size_distribution": {"1": 1},
+  "queue_wait_time_avg_s": 0.0001,
+  "ttft_avg_s": 0.045,
+  "total_latency_avg_s": 0.095,
+  "queue_size": 0
+}
+```
+
 Non-streaming chat completion:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d "{\"model\":\"mock-llm\",\"messages\":[{\"role\":\"user\",\"content\":\"hello\"}],\"max_tokens\":8}"
+```
+
+Streaming chat completion:
+
+```bash
+curl -N -X POST http://127.0.0.1:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d "{\"model\":\"mock-llm\",\"messages\":[{\"role\":\"user\",\"content\":\"stream a short reply\"}],\"max_tokens\":4,\"stream\":true}"
+```
+
+Example SSE output:
+
+```text
+data: {"id": "chatcmpl-...", "object": "chat.completion.chunk", "model": "mock-llm", "choices": [{"index": 0, "delta": {"content": "tok0 "}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-...", "object": "chat.completion.chunk", "model": "mock-llm", "choices": [{"index": 0, "delta": {"content": "tok1 "}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-...", "object": "chat.completion.chunk", "model": "mock-llm", "choices": [{"index": 0, "delta": {"content": "tok2 "}, "finish_reason": null}]}
+
+data: {"id": "chatcmpl-...", "object": "chat.completion.chunk", "model": "mock-llm", "choices": [{"index": 0, "delta": {"content": "tok3 "}, "finish_reason": null}]}
+
+data: [DONE]
 ```
 
 Run tests:
