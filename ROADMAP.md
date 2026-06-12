@@ -6,10 +6,10 @@ optional real-backend adapters that require local model/runtime setup.
 
 - A full async LLM serving pipeline (FastAPI + dynamic micro-batching + streaming)
 - Three backend adapters (mock, llama.cpp, vLLM)
-- Metrics with Prometheus histograms and structured JSON logging
+- Metrics with Prometheus histograms, optional GPU telemetry, and structured JSON logging
 - Benchmark scripts and saved result artifacts
 - Pinned development requirements for reproducible CI installs
-- 53 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 57 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -53,6 +53,7 @@ Completed:
 - Prometheus-style metrics export (JSON and text exposition format)
 - latency histograms with predefined buckets for queue wait, TTFT, and total latency
 - Prometheus histogram type output with cumulative buckets, sum, and count
+- optional `nvidia-smi` GPU memory/utilization sampler with unavailable fallback
 - structured JSON request lifecycle logging with request_id correlation
 - structured logs integrated into API routes, worker manager, and lifecycle
 
@@ -83,4 +84,4 @@ Completed:
 ## Open Follow-Ups
 
 - Add linting to GitHub Actions
-- Add real GPU memory/utilization sampling for llama.cpp or vLLM runs
+- Add NVML-backed GPU sampling as a lower-overhead alternative to `nvidia-smi`

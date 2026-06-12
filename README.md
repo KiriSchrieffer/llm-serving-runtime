@@ -31,6 +31,7 @@ flowchart LR
     Handles --> API
     API --> Client
     Worker --> Metrics["MetricsCollector<br/>queue wait, TTFT, latency"]
+    Metrics --> GPU["NvidiaSmiSampler<br/>optional GPU telemetry"]
     API --> MetricsEndpoint["/metrics<br/>JSON or Prometheus"]
     Metrics --> MetricsEndpoint
 ```
@@ -43,7 +44,8 @@ The runtime has these layers:
 - **Backend**: abstract backend interface with mock, llama.cpp, and vLLM adapters. The real backends manage external `llama-server` / `vllm serve` subprocesses.
 - **Worker path**: background batch execution with per-request result routing through completion or streaming channels.
 - **Streaming**: Server-Sent Events for streaming chat completions.
-- **Metrics**: in-memory counters, latency histograms, Prometheus text-format export, and structured JSON request logs.
+- **Metrics**: in-memory counters, latency histograms, optional GPU telemetry,
+  Prometheus text-format export, and structured JSON request logs.
 
 ## Current Status
 
@@ -64,18 +66,19 @@ What is implemented and tested:
 - non-streaming request timeout handling and streaming disconnect cancellation
 - batch-aware mock backend with shared prefill/decode simulation
 - batch size, queue wait, TTFT, total latency, and token metrics
+- optional `nvidia-smi` GPU memory/utilization sampler with unavailable fallback
 - priority scheduler benchmark with high-priority TTFT, low-priority queue wait,
   starvation, and fairness metrics
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
-- pytest coverage for core paths (53 test cases)
+- pytest coverage for core paths (57 test cases)
 
 Known limitations:
 
 - mock-backend benchmarks validate serving behavior, not real GPU throughput
 - llama.cpp benchmark artifacts are CPU-only and hardware-specific
 - vLLM support is an adapter boundary; it requires a local vLLM installation and model access
-- GPU memory and utilization metrics are placeholders in the default mock path
+- GPU metrics use `nvidia-smi`; unsupported hosts report `unavailable`
 - Redis-backed queues
 - production authentication, rate limiting, and multi-node serving
 
@@ -135,6 +138,16 @@ Abbreviated JSON output after a small mock request:
   "queue_wait_time_avg_s": 0.0001,
   "ttft_avg_s": 0.045,
   "total_latency_avg_s": 0.095,
+  "gpu": {
+    "status": "unavailable",
+    "source": "nvidia-smi",
+    "reason": "nvidia-smi not found",
+    "gpu_count": 0,
+    "memory_used_mb": 0,
+    "memory_total_mb": 0,
+    "utilization_pct": 0,
+    "gpus": []
+  },
   "queue_size": 0
 }
 ```

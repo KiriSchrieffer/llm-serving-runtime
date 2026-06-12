@@ -1,6 +1,8 @@
 from collections import Counter
+from collections.abc import Callable
 
 from llm_runtime.core.request import RuntimeRequest
+from llm_runtime.metrics.gpu import GPUSnapshot, gpu_snapshot
 from llm_runtime.metrics.latency import percentile
 
 
@@ -71,7 +73,7 @@ class Histogram:
 class MetricsCollector:
     """In-memory metrics collector with latency histograms and Prometheus export."""
 
-    def __init__(self) -> None:
+    def __init__(self, gpu_sampler: Callable[[], GPUSnapshot] | None = None) -> None:
         self.request_count = 0
         self.completed_count = 0
         self.failed_count = 0
@@ -85,6 +87,7 @@ class MetricsCollector:
         self.queue_wait_histogram = Histogram()
         self.ttft_histogram = Histogram()
         self.total_latency_histogram = Histogram()
+        self._gpu_sampler = gpu_sampler or gpu_snapshot
 
     def record_request(self) -> None:
         self.request_count += 1
@@ -135,6 +138,7 @@ class MetricsCollector:
             "total_latency_p95_s": percentile(self.total_latencies, 95),
             "total_latency_p99_s": percentile(self.total_latencies, 99),
             "total_latency_histogram": self.total_latency_histogram.snapshot(),
+            "gpu": self._gpu_sampler(),
         }
 
     def snapshot_prometheus(self, queue_size: int = 0) -> str:
@@ -178,6 +182,9 @@ class MetricsCollector:
         _add("# TYPE llm_batch_size_max gauge")
         _add(f"llm_batch_size_max {max(self.batch_sizes, default=0)}")
 
+        _add("")
+        lines.extend(_gpu_prometheus_lines(self._gpu_sampler()))
+
         # Per-latency quantile gauges. Histogram metrics keep the base names.
         for name, values in [
             ("llm_queue_wait_quantile_seconds", self.queue_wait_times),
@@ -193,9 +200,21 @@ class MetricsCollector:
 
         # Histogram metrics
         for name, histogram, help_text in [
-            ("llm_queue_wait_seconds", self.queue_wait_histogram, "Queue wait time histogram."),
-            ("llm_ttft_seconds", self.ttft_histogram, "Time-to-first-token histogram."),
-            ("llm_total_latency_seconds", self.total_latency_histogram, "Total request latency histogram."),
+            (
+                "llm_queue_wait_seconds",
+                self.queue_wait_histogram,
+                "Queue wait time histogram.",
+            ),
+            (
+                "llm_ttft_seconds",
+                self.ttft_histogram,
+                "Time-to-first-token histogram.",
+            ),
+            (
+                "llm_total_latency_seconds",
+                self.total_latency_histogram,
+                "Total request latency histogram.",
+            ),
         ]:
             text = histogram.prometheus_lines(name, help_text)
             if text:
@@ -224,3 +243,76 @@ def _avg(values: list[float]) -> float:
     if not values:
         return 0.0
     return sum(values) / len(values)
+
+
+def _gpu_prometheus_lines(snapshot: GPUSnapshot) -> list[str]:
+    source = _escape_label(str(snapshot.get("source", "nvidia-smi")))
+    available = 1 if snapshot.get("status") == "available" else 0
+    gpu_count = int(snapshot.get("gpu_count", 0))
+    memory_used_mb = int(snapshot.get("memory_used_mb", 0))
+    memory_total_mb = int(snapshot.get("memory_total_mb", 0))
+    utilization_pct = int(snapshot.get("utilization_pct", 0))
+
+    lines = [
+        "# HELP llm_gpu_available Whether GPU metrics are available from the sampler.",
+        "# TYPE llm_gpu_available gauge",
+        f'llm_gpu_available{{source="{source}"}} {available}',
+        "",
+        "# HELP llm_gpu_count Number of GPUs reported by the sampler.",
+        "# TYPE llm_gpu_count gauge",
+        f'llm_gpu_count{{source="{source}"}} {gpu_count}',
+        "",
+        "# HELP llm_gpu_memory_used_bytes Total GPU memory used.",
+        "# TYPE llm_gpu_memory_used_bytes gauge",
+        (
+            f'llm_gpu_memory_used_bytes{{source="{source}"}} '
+            f"{memory_used_mb * 1024 * 1024}"
+        ),
+        "",
+        "# HELP llm_gpu_memory_total_bytes Total GPU memory capacity.",
+        "# TYPE llm_gpu_memory_total_bytes gauge",
+        (
+            f'llm_gpu_memory_total_bytes{{source="{source}"}} '
+            f"{memory_total_mb * 1024 * 1024}"
+        ),
+        "",
+        "# HELP llm_gpu_utilization_percent Average GPU utilization percent.",
+        "# TYPE llm_gpu_utilization_percent gauge",
+        f'llm_gpu_utilization_percent{{source="{source}"}} {utilization_pct}',
+    ]
+
+    gpus = snapshot.get("gpus", [])
+    if isinstance(gpus, list):
+        valid_gpus = [gpu for gpu in gpus if isinstance(gpu, dict)]
+        if not valid_gpus:
+            return lines
+        lines.extend(
+            [
+                "",
+                "# HELP llm_gpu_device_memory_used_bytes Per-GPU memory used.",
+                "# TYPE llm_gpu_device_memory_used_bytes gauge",
+                "# HELP llm_gpu_device_memory_total_bytes Per-GPU memory capacity.",
+                "# TYPE llm_gpu_device_memory_total_bytes gauge",
+                "# HELP llm_gpu_device_utilization_percent Per-GPU utilization percent.",
+                "# TYPE llm_gpu_device_utilization_percent gauge",
+            ]
+        )
+        for gpu in valid_gpus:
+            index = _escape_label(str(gpu.get("index", "")))
+            name = _escape_label(str(gpu.get("name", "")))
+            labels = f'gpu="{index}",name="{name}",source="{source}"'
+            lines.extend(
+                [
+                    f'llm_gpu_device_memory_used_bytes{{{labels}}} '
+                    f'{int(gpu.get("memory_used_mb", 0)) * 1024 * 1024}',
+                    f'llm_gpu_device_memory_total_bytes{{{labels}}} '
+                    f'{int(gpu.get("memory_total_mb", 0)) * 1024 * 1024}',
+                    f'llm_gpu_device_utilization_percent{{{labels}}} '
+                    f'{int(gpu.get("utilization_pct", 0))}',
+                ]
+            )
+    return lines
+
+
+def _escape_label(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
