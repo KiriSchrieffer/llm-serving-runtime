@@ -13,4 +13,5 @@ build/
 .env
 benchmarks/results/*.csv
 benchmarks/results/*.log
+benchmarks/results/*.md
 benchmarks/results/smoke/

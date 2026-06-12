@@ -76,6 +76,7 @@ Completed:
 - reusable benchmark configs (`benchmarks/configs/`): quick, sweep, scheduler
 - automated benchmark report generator (`benchmarks/generate_report.py`)
 - documented performance tradeoffs (`docs/performance_tradeoffs.md`)
+- curated benchmark summary separated from raw JSON and generated scratch reports
 - `.env.example` and `.env.benchmark` for all configuration options
 - pinned `requirements-dev.txt` used by local development and GitHub Actions
 
@@ -83,4 +84,3 @@ Completed:
 
 - Add linting to GitHub Actions
 - Add real GPU memory/utilization sampling for llama.cpp or vLLM runs
-- Split generated benchmark reports from curated benchmark summaries

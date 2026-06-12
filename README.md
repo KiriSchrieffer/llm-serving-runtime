@@ -92,6 +92,8 @@ Benchmark scripts and saved artifacts track:
 - priority scheduling fairness/starvation tradeoffs
 
 Mock-backend runs are complete and documented. The repository also includes CPU-only llama.cpp notes to show how mock results differ from a real backend.
+The curated benchmark write-up lives in `docs/benchmark_report.md`; raw JSON
+artifacts live under `benchmarks/results/`.
 
 ## Run Locally
 
@@ -215,6 +217,15 @@ The default workload creates a low-priority backlog, injects high-priority
 requests after 40 ms, and compares FIFO against priority scheduling. The saved
 artifact reports high-priority TTFT, low-priority queue wait, Jain fairness over
 inverse queue wait, and low-priority starvation counts.
+
+Generate a scratch Markdown view from raw benchmark JSON artifacts:
+
+```bash
+python benchmarks/generate_report.py --output benchmarks/results/generated_benchmark_report.md
+```
+
+This generated Markdown is intentionally ignored by git. Keep curated benchmark
+analysis in `docs/benchmark_report.md`.
 
 To manually run a server with dynamic batching enabled:
 

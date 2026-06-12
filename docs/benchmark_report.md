@@ -1,16 +1,22 @@
 # Benchmark Report
 
+This is the curated, human-written benchmark summary. Raw benchmark artifacts are
+kept as JSON under `benchmarks/results/`. The helper script
+`benchmarks/generate_report.py` can generate a temporary Markdown view from those
+JSON files, but generated Markdown is ignored by git so this document remains the
+single narrative benchmark report.
+
 ## First Mock Backend Comparison
 
 Recorded on May 26, 2026 using a local Uvicorn service and the mock backend.
 Each concurrency level sends 64 requests with 32 completion tokens per request.
 Mock latency settings are 25 ms prefill and 10 ms decode. Dynamic batching
-uses max_batch_size=8 and atch_timeout_ms=10.
+uses `max_batch_size=8` and `batch_timeout_ms=10`.
 
 Raw result artifacts:
 
-- enchmarks/results/fifo_baseline.json
-- enchmarks/results/dynamic_batching.json
+- `benchmarks/results/fifo_baseline.json`
+- `benchmarks/results/dynamic_batching.json`
 
 | Concurrency | FIFO tok/s | Batch tok/s | Throughput delta | FIFO P95 ms | Batch P95 ms | FIFO TTFT ms | Batch TTFT ms | Avg batch |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -34,10 +40,10 @@ Raw result artifacts:
 
 ## Reproduce
 
-`powershell
+```bash
 python benchmarks/run_local_comparison.py --mode both --levels 1 8 16 32 64 --requests 64 --max-tokens 32 --max-batch-size 8 --batch-timeout-ms 10 --prefill-latency-ms 25 --decode-latency-ms 10 --output-dir benchmarks/results
 python benchmarks/analyze_results.py --baseline benchmarks/results/fifo_baseline.json --dynamic benchmarks/results/dynamic_batching.json
-`
+```
 
 ## High-Concurrency Batch Parameter Sweep
 
@@ -45,9 +51,9 @@ Recorded on May 27, 2026. This experiment fixes the workload at concurrency
 64, 64 requests, and 32 completion tokens per request. It scans:
 
 - max_batch_size: 2, 4, 8, 16
-- atch_timeout_ms: , 5, 10, 20
+- batch_timeout_ms: 0, 5, 10, 20
 
-Raw result artifact: enchmarks/results/batch_sweep_c64.json.
+Raw result artifact: `benchmarks/results/batch_sweep_c64.json`.
 
 | Batch size | Timeout ms | Tokens/s | vs FIFO | TTFT ms | P95 ms | Avg batch |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -68,7 +74,7 @@ Raw result artifact: enchmarks/results/batch_sweep_c64.json.
 | 16 | 10 | 907.9 | +1354.0% | 925.7 | 2250.4 | 12.80 |
 | 16 | 20 | 1096.5 | +1656.1% | 610.5 | 1862.1 | 16.00 |
 
-For this saturated mock workload, atch_size=16 and 	imeout_ms=20 is the
+For this saturated mock workload, `batch_size=16` and `timeout_ms=20` is the
 best observed configuration by throughput, TTFT, and P95. A longer collection
 window helps here because it fills the batch before execution and reduces later
 queueing rounds.
@@ -77,7 +83,7 @@ queueing rounds.
 
 The 16/20 ms candidate was rerun across the original concurrency matrix.
 Raw result artifact:
-enchmarks/results/candidate_b16_t20/dynamic_batching.json.
+`benchmarks/results/candidate_b16_t20/dynamic_batching.json`.
 
 | Concurrency | FIFO tok/s | Candidate tok/s | Throughput delta | FIFO P95 ms | Candidate P95 ms | FIFO TTFT ms | Candidate TTFT ms | Avg batch |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -94,10 +100,10 @@ setting before validation with real backends and a workload-aware policy.
 
 ## Reproduce Sweep
 
-`powershell
+```bash
 python benchmarks/run_batch_sweep.py --concurrency 64 --requests 64 --max-tokens 32 --batch-sizes 2 4 8 16 --timeouts 0 5 10 20 --prefill-latency-ms 25 --decode-latency-ms 10 --output benchmarks/results/batch_sweep_c64.json
 python benchmarks/analyze_batch_sweep.py --sweep benchmarks/results/batch_sweep_c64.json --baseline benchmarks/results/fifo_baseline.json --ttft-budget-ms 1000
-`
+```
 
 ## Reproducible Benchmark Configuration
 
@@ -107,23 +113,23 @@ command line, producing artifacts that record the full configuration:
 | Flag | Default | Choices |
 |---|---|---|
 | --backend | mock | mock, llama.cpp |
-| --scheduler | ifo | ifo, priority |
+| --scheduler | fifo | fifo, priority |
 
 ### Compare real model backends
 
-`powershell
+```bash
 python benchmarks/run_local_comparison.py --backend llama.cpp --mode both --levels 1 --requests 8 --max-tokens 16
-`
+```
 
 This starts a temporary `llama-server` subprocess, runs the load test, and
-shuts it down  no separate server management needed. Each `--mode` spawns
+shuts it down; no separate server management needed. Each `--mode` spawns
 a fresh runtime so metrics do not leak between runs.
 
 ### Compare schedulers
 
-`powershell
+```bash
 python benchmarks/run_local_comparison.py --scheduler priority --mode dynamic --levels 1 8 16 --requests 16 --max-tokens 16
-`
+```
 
 The `runtime_settings` key in every output JSON records the actual backend
 and scheduler used, making each result self-describing and independently
@@ -131,9 +137,9 @@ reproducible.
 
 ### Batch sweep with any backend
 
-`powershell
+```bash
 python benchmarks/run_batch_sweep.py --backend mock --scheduler fifo --concurrency 64 --batch-sizes 2 4 8 16 --timeouts 0 5 10 20
-`
+```
 
 ## Mixed-Priority Scheduler Benchmark
 
@@ -171,8 +177,5 @@ python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/result
   llama.cpp backend to observe real inference latency, throughput, and TTFT.
 - **Backend comparison**: mock vs llama.cpp latency profiles under identical
   request patterns.
-- **llama.cpp batch configuration**: sweep 
-_ctx, 
-_batch, and 
-_gpu_layers
+- **llama.cpp batch configuration**: sweep `n_ctx`, `n_batch`, and `n_gpu_layers`
   to find the optimal serving configuration for a given model and hardware.
