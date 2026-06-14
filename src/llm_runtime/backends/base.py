@@ -41,7 +41,7 @@ class Backend(ABC):
         return BackendCapability(0)
 
     @abstractmethod
-    async def generate(self, request: RuntimeRequest) -> AsyncIterator[str]:
+    def generate(self, request: RuntimeRequest) -> AsyncIterator[str]:
         """Yield generated tokens for a request."""
 
     async def generate_batch(

@@ -69,7 +69,7 @@ class WorkerManager:
             return
 
         items = {item.request.request_id: item for item in active_items}
-        tokens = {request_id: [] for request_id in items}
+        tokens: dict[str, list[str]] = {request_id: [] for request_id in items}
         pending = set(items)
         batch_start = perf_counter()
         try:

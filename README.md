@@ -1,5 +1,5 @@
 # GPU-Aware LLM Serving Runtime
-[![Tests](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml/badge.svg)](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml)
+[![CI](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml/badge.svg)](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml)
 
 A small local LLM serving runtime focused on the systems work behind inference serving: async request handling, scheduling, batching, streaming, metrics, and reproducible benchmarking.
 
@@ -71,6 +71,7 @@ What is implemented and tested:
   starvation, and fairness metrics
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
+- CI quality gates with `ruff`, `mypy`, and `pytest`
 - pytest coverage for core paths (57 test cases)
 
 Known limitations:
@@ -186,6 +187,14 @@ Run tests:
 
 ```bash
 python -m pytest
+```
+
+Run local quality checks:
+
+```bash
+python -m ruff check src tests benchmarks
+python -m mypy
+python -m pytest -q
 ```
 
 ## Run with Docker

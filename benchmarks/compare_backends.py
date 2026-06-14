@@ -1,15 +1,16 @@
-import asyncio, json, time, sys
+import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from fastapi.testclient import TestClient
-from llm_runtime.main import create_app
-from llm_runtime.core.lifecycle import RuntimeServices
-from llm_runtime.config import Settings
-from llm_runtime.backends.mock_backend import MockBackend
 from llm_runtime.backends.llama_cpp_backend import LlamaCppBackend
+from llm_runtime.backends.mock_backend import MockBackend
+from llm_runtime.config import Settings
+from llm_runtime.core.lifecycle import RuntimeServices
+from llm_runtime.main import create_app
 
 MESSAGES = [{"role": "user", "content": "Hello, respond in one sentence."}]
 MAX_TOKENS = 16
@@ -33,7 +34,6 @@ def run_backend(label, services):
     print(f"{'='*60}")
     print(f"  Requests: {ok}/{REQUESTS} OK")
     print(f"  Total tokens: {snap['generated_tokens_total']}")
-    total_s = (snap.get('total_latency_p50_s', 0) or 0) * REQUESTS
     print(f"  TTFT p50: {snap.get('ttft_p50_s', 'N/A')}s, p95: {snap.get('ttft_p95_s', 'N/A')}s")
     print(f"  Total latency p50: {snap.get('total_latency_p50_s', 'N/A')}s, p95: {snap.get('total_latency_p95_s', 'N/A')}s")
     print(f"  Queue wait p50: {snap.get('queue_wait_time_p50_s', 'N/A')}s")
@@ -73,5 +73,5 @@ for metric in ["ttft_p50_s", "ttft_p95_s", "total_latency_p50_s",
                "total_latency_p95_s", "queue_wait_time_p50_s",
                "generated_tokens_total"]:
     m = mock_snap.get(metric, "N/A")
-    l = llama_snap.get(metric, "N/A")
-    print(f"  {metric:30s}  mock={str(m):>10s}  llama={str(l):>10s}")
+    llama_value = llama_snap.get(metric, "N/A")
+    print(f"  {metric:30s}  mock={str(m):>10s}  llama={str(llama_value):>10s}")

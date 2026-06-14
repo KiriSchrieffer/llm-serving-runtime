@@ -3,9 +3,28 @@ import shutil
 import subprocess
 from collections.abc import Callable, Sequence
 from io import StringIO
+from typing import NotRequired, TypedDict
 
 
-GPUSnapshot = dict[str, object]
+class GPUDeviceSnapshot(TypedDict):
+    index: int
+    name: str
+    memory_used_mb: int
+    memory_total_mb: int
+    utilization_pct: int
+
+
+class GPUSnapshot(TypedDict):
+    status: str
+    source: str
+    gpu_count: int
+    memory_used_mb: int
+    memory_total_mb: int
+    utilization_pct: int
+    gpus: list[GPUDeviceSnapshot]
+    reason: NotRequired[str]
+
+
 Runner = Callable[[Sequence[str], float], subprocess.CompletedProcess[str]]
 
 _QUERY_FIELDS = [
@@ -89,8 +108,8 @@ def _run(
     )
 
 
-def _parse_nvidia_smi(output: str) -> list[dict[str, object]]:
-    gpus: list[dict[str, object]] = []
+def _parse_nvidia_smi(output: str) -> list[GPUDeviceSnapshot]:
+    gpus: list[GPUDeviceSnapshot] = []
     reader = csv.reader(StringIO(output))
     for row in reader:
         if not row or all(not value.strip() for value in row):

@@ -1,5 +1,5 @@
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from llm_runtime.core.request import RuntimeRequest
 from llm_runtime.metrics.gpu import GPUSnapshot, gpu_snapshot
@@ -239,19 +239,19 @@ class MetricsCollector:
             self.total_latency_histogram.observe(total)
 
 
-def _avg(values: list[float]) -> float:
+def _avg(values: Sequence[float | int]) -> float:
     if not values:
         return 0.0
     return sum(values) / len(values)
 
 
 def _gpu_prometheus_lines(snapshot: GPUSnapshot) -> list[str]:
-    source = _escape_label(str(snapshot.get("source", "nvidia-smi")))
-    available = 1 if snapshot.get("status") == "available" else 0
-    gpu_count = int(snapshot.get("gpu_count", 0))
-    memory_used_mb = int(snapshot.get("memory_used_mb", 0))
-    memory_total_mb = int(snapshot.get("memory_total_mb", 0))
-    utilization_pct = int(snapshot.get("utilization_pct", 0))
+    source = _escape_label(snapshot["source"])
+    available = 1 if snapshot["status"] == "available" else 0
+    gpu_count = snapshot["gpu_count"]
+    memory_used_mb = snapshot["memory_used_mb"]
+    memory_total_mb = snapshot["memory_total_mb"]
+    utilization_pct = snapshot["utilization_pct"]
 
     lines = [
         "# HELP llm_gpu_available Whether GPU metrics are available from the sampler.",
@@ -281,11 +281,7 @@ def _gpu_prometheus_lines(snapshot: GPUSnapshot) -> list[str]:
         f'llm_gpu_utilization_percent{{source="{source}"}} {utilization_pct}',
     ]
 
-    gpus = snapshot.get("gpus", [])
-    if isinstance(gpus, list):
-        valid_gpus = [gpu for gpu in gpus if isinstance(gpu, dict)]
-        if not valid_gpus:
-            return lines
+    if snapshot["gpus"]:
         lines.extend(
             [
                 "",
@@ -297,18 +293,18 @@ def _gpu_prometheus_lines(snapshot: GPUSnapshot) -> list[str]:
                 "# TYPE llm_gpu_device_utilization_percent gauge",
             ]
         )
-        for gpu in valid_gpus:
-            index = _escape_label(str(gpu.get("index", "")))
-            name = _escape_label(str(gpu.get("name", "")))
+        for gpu in snapshot["gpus"]:
+            index = _escape_label(str(gpu["index"]))
+            name = _escape_label(gpu["name"])
             labels = f'gpu="{index}",name="{name}",source="{source}"'
             lines.extend(
                 [
                     f'llm_gpu_device_memory_used_bytes{{{labels}}} '
-                    f'{int(gpu.get("memory_used_mb", 0)) * 1024 * 1024}',
+                    f'{gpu["memory_used_mb"] * 1024 * 1024}',
                     f'llm_gpu_device_memory_total_bytes{{{labels}}} '
-                    f'{int(gpu.get("memory_total_mb", 0)) * 1024 * 1024}',
+                    f'{gpu["memory_total_mb"] * 1024 * 1024}',
                     f'llm_gpu_device_utilization_percent{{{labels}}} '
-                    f'{int(gpu.get("utilization_pct", 0))}',
+                    f'{gpu["utilization_pct"]}',
                 ]
             )
     return lines
