@@ -15,7 +15,9 @@ from llm_runtime.workers.manager import WorkerManager
 
 def _build_scheduler(settings: Settings) -> Scheduler:
     if settings.scheduler == "priority":
-        return PriorityScheduler()
+        return PriorityScheduler(
+            aging_boost_interval_s=settings.priority_aging_boost_interval_s
+        )
     return FIFOScheduler()
 
 

@@ -15,6 +15,7 @@ class Settings(BaseModel):
 
     backend: str = "mock"
     scheduler: str = "fifo"
+    priority_aging_boost_interval_s: float = Field(default=0.0, ge=0)
     enable_batching: bool = True
     prefill_latency_ms: int = Field(default=25, ge=0)
     decode_latency_ms: int = Field(default=10, ge=0)
@@ -34,6 +35,9 @@ def get_settings() -> Settings:
     return Settings(
         backend=os.getenv("LLM_RUNTIME_BACKEND", "mock"),
         scheduler=os.getenv("LLM_RUNTIME_SCHEDULER", "fifo"),
+        priority_aging_boost_interval_s=float(
+            os.getenv("LLM_RUNTIME_PRIORITY_AGING_BOOST_INTERVAL_S", "0")
+        ),
         enable_batching=os.getenv("LLM_RUNTIME_ENABLE_BATCHING", "true").lower()
         in {"1", "true", "yes", "on"},
         prefill_latency_ms=int(os.getenv("LLM_RUNTIME_PREFILL_LATENCY_MS", "25")),

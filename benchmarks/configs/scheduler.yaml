@@ -1,7 +1,8 @@
-# Scheduler comparison config — FIFO vs Priority
+# Scheduler comparison config — FIFO vs Priority vs Priority Aging
 base_url: http://llm-runtime:8000
 concurrency_levels: [4, 16]
 requests_per_level: 32
 max_tokens: 16
-schedulers: [fifo, priority]
+schedulers: [fifo, priority, priority_aging]
+priority_aging_boost_interval_ms: 20
 output: benchmarks/results/scheduler.json

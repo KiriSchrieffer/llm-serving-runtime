@@ -179,3 +179,54 @@ async def _assert_priority_waits() -> None:
     await scheduler.submit(item)
 
     assert await pending is item
+
+
+def test_priority_aging_disabled_preserves_strict_priority() -> None:
+    asyncio.run(_assert_priority_aging_disabled())
+
+
+async def _assert_priority_aging_disabled() -> None:
+    now = 0.0
+    scheduler = PriorityScheduler(time_fn=lambda: now)
+    low = ScheduledRequest(
+        request=make_request("old low", priority=2),
+        handle=CompletionHandle.create(),
+    )
+    high = ScheduledRequest(
+        request=make_request("new high", priority=0),
+        handle=CompletionHandle.create(),
+    )
+
+    await scheduler.submit(low)
+    now = 10.0
+    await scheduler.submit(high)
+
+    assert await scheduler.next_request() is high
+    assert await scheduler.next_request() is low
+
+
+def test_priority_aging_boosts_old_low_priority_request() -> None:
+    asyncio.run(_assert_priority_aging_boosts_old_low())
+
+
+async def _assert_priority_aging_boosts_old_low() -> None:
+    now = 0.0
+    scheduler = PriorityScheduler(
+        aging_boost_interval_s=1.0,
+        time_fn=lambda: now,
+    )
+    low = ScheduledRequest(
+        request=make_request("old low", priority=2),
+        handle=CompletionHandle.create(),
+    )
+    high = ScheduledRequest(
+        request=make_request("new high", priority=0),
+        handle=CompletionHandle.create(),
+    )
+
+    await scheduler.submit(low)
+    now = 2.1
+    await scheduler.submit(high)
+
+    assert await scheduler.next_request() is low
+    assert await scheduler.next_request() is high

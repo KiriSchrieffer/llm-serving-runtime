@@ -7,7 +7,8 @@ from llm_runtime.backends.mock_backend import MockBackend
 from llm_runtime.backends.llama_cpp_backend import LlamaCppBackend
 from llm_runtime.backends.vllm_backend import VLLMBackend
 from llm_runtime.config import Settings
-from llm_runtime.core.lifecycle import _build_backend
+from llm_runtime.core.lifecycle import _build_backend, _build_scheduler
+from llm_runtime.scheduler.priority import PriorityScheduler
 
 
 def test_mock_backend_capabilities():
@@ -101,6 +102,17 @@ def test_build_backend_returns_llama_cpp_when_configured():
     settings = Settings(backend="llama.cpp", model_path="/tmp/model.gguf")
     backend = _build_backend(settings)
     assert isinstance(backend, LlamaCppBackend)
+
+
+def test_build_scheduler_configures_priority_aging():
+    settings = Settings(
+        scheduler="priority",
+        priority_aging_boost_interval_s=0.25,
+    )
+    scheduler = _build_scheduler(settings)
+
+    assert isinstance(scheduler, PriorityScheduler)
+    assert scheduler.aging_boost_interval_s == 0.25
 
 
 def test_dispatch_respects_native_batching():

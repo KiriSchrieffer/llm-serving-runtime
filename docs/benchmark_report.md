@@ -143,27 +143,29 @@ python benchmarks/run_batch_sweep.py --backend mock --scheduler fifo --concurren
 
 ## Mixed-Priority Scheduler Benchmark
 
-Recorded on June 11, 2026 using the mock backend. The workload enqueues
+Recorded on June 14, 2026 using the mock backend. The workload enqueues
 24 low-priority requests at time zero, then injects 8 high-priority requests
 after 40 ms. Mock latency settings are 25 ms prefill and 10 ms decode.
-The scheduler forms batches of 4 requests with no collection timeout.
+The scheduler forms batches of 4 requests with no collection timeout. The aging
+run uses a 20 ms boost interval.
 
 Raw result artifact: `benchmarks/results/priority_scheduler_mixed.json`.
 
-| Metric | FIFO | Priority |
-| --- | ---: | ---: |
-| High-priority avg TTFT | 1.002s | 0.194s |
-| High-priority P95 TTFT | 1.037s | 0.229s |
-| Low-priority avg queue wait | 0.400s | 0.521s |
-| Low-priority P95 queue wait | 0.800s | 0.944s |
-| Queue-wait Jain fairness | 0.854 | 0.776 |
-| Low-priority starved fraction | 16.7% | 33.3% |
+| Metric | FIFO | Strict priority | Priority aging |
+| --- | ---: | ---: | ---: |
+| High-priority avg TTFT | 0.978s | 0.190s | 0.583s |
+| High-priority P95 TTFT | 1.013s | 0.225s | 1.012s |
+| Low-priority avg queue wait | 0.393s | 0.511s | 0.453s |
+| Low-priority P95 queue wait | 0.788s | 0.930s | 0.858s |
+| Queue-wait Jain fairness | 0.856 | 0.776 | 0.992 |
+| Low-priority starved fraction | 16.7% | 33.3% | 16.7% |
 
-Priority scheduling improves high-priority average TTFT by 80.6%, but it
-increases low-priority average queue wait by 30.2% and doubles the fraction
-of low-priority requests above the 750 ms starvation threshold. This is the
-intended tradeoff for strict priority: urgent interactive work starts much
-sooner, while background work gives up fairness.
+Strict priority improves high-priority average TTFT by 80.5%, but it increases
+low-priority average queue wait by 30.0% and doubles the fraction of
+low-priority requests above the 750 ms starvation threshold. Priority aging
+recovers most fairness (`0.776 -> 0.992`) and lowers low-priority average queue
+wait by 11.4% relative to strict priority, while still keeping high-priority
+average TTFT 40.4% better than FIFO.
 
 Reproduce:
 

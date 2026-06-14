@@ -57,7 +57,7 @@ What is implemented and tested:
 - non-streaming responses
 - streaming responses (Server-Sent Events)
 - FIFO scheduler
-- Priority scheduler (lower priority value = higher priority, with FIFO within each level)
+- Priority scheduler with optional aging fairness policy
 - mock token generation
 - llama.cpp backend adapter with `llama-server` subprocess lifecycle
 - vLLM backend adapter with `vllm serve` subprocess lifecycle
@@ -68,11 +68,11 @@ What is implemented and tested:
 - batch size, queue wait, TTFT, total latency, and token metrics
 - optional `nvidia-smi` GPU memory/utilization sampler with unavailable fallback
 - priority scheduler benchmark with high-priority TTFT, low-priority queue wait,
-  starvation, and fairness metrics
+  starvation, fairness, and aging-policy metrics
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
 - CI quality gates with `ruff`, `mypy`, and `pytest`
-- pytest coverage for core paths (57 test cases)
+- pytest coverage for core paths (60 test cases)
 
 Known limitations:
 
@@ -236,9 +236,9 @@ python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/result
 ```
 
 The default workload creates a low-priority backlog, injects high-priority
-requests after 40 ms, and compares FIFO against priority scheduling. The saved
-artifact reports high-priority TTFT, low-priority queue wait, Jain fairness over
-inverse queue wait, and low-priority starvation counts.
+requests after 40 ms, and compares FIFO, strict priority, and priority aging.
+The saved artifact reports high-priority TTFT, low-priority queue wait, Jain
+fairness over inverse queue wait, and low-priority starvation counts.
 
 Generate a scratch Markdown view from raw benchmark JSON artifacts:
 

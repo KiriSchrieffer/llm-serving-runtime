@@ -9,7 +9,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Metrics with Prometheus histograms, optional GPU telemetry, and structured JSON logging
 - Benchmark scripts and saved result artifacts
 - Pinned development requirements and CI quality gates
-- 57 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 60 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -43,6 +43,7 @@ Completed:
 - first mock-backend benchmark report across concurrency levels 1, 8, 16, 32, and 64
 - high-concurrency batch size/timeout sweep and candidate configuration validation
 - priority scheduler implementation (lower priority value = higher, FIFO within level)
+- priority aging policy to reduce starvation under mixed-priority load
 - mixed-priority scheduler benchmark with TTFT, queue wait, starvation, and fairness metrics
 - llama.cpp backend adapter with llama-server subprocess lifecycle
 

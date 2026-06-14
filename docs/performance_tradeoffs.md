@@ -50,32 +50,35 @@ python benchmarks/run_priority_scheduler_benchmark.py --output benchmarks/result
 
 Default workload: 24 low-priority requests at time zero, then 8 high-priority
 requests after 40 ms. Mock latency is 25 ms prefill / 10 ms decode, with
-`max_batch_size=4` and `batch_timeout_ms=0`.
+`max_batch_size=4`, `batch_timeout_ms=0`, and a 20 ms aging boost interval.
 
-| Metric | FIFO | Priority |
-|---|---:|---:|
-| High-priority avg TTFT | 1.002s | 0.194s |
-| High-priority P95 TTFT | 1.037s | 0.229s |
-| Low-priority avg queue wait | 0.400s | 0.521s |
-| Low-priority P95 queue wait | 0.800s | 0.944s |
-| Queue-wait Jain fairness | 0.854 | 0.776 |
-| Low-priority starved fraction | 16.7% | 33.3% |
+| Metric | FIFO | Strict priority | Priority aging |
+|---|---:|---:|---:|
+| High-priority avg TTFT | 0.978s | 0.190s | 0.583s |
+| High-priority P95 TTFT | 1.013s | 0.225s | 1.012s |
+| Low-priority avg queue wait | 0.393s | 0.511s | 0.453s |
+| Low-priority P95 queue wait | 0.788s | 0.930s | 0.858s |
+| Queue-wait Jain fairness | 0.856 | 0.776 | 0.992 |
+| Low-priority starved fraction | 16.7% | 33.3% | 16.7% |
 
-Priority scheduling improved high-priority average TTFT by 80.6%, while
-increasing low-priority average queue wait by 30.2%. The fairness index drops
-because strict priority intentionally skews service toward urgent requests.
+Strict priority improved high-priority average TTFT by 80.5% versus FIFO, while
+increasing low-priority average queue wait by 30.0%. Priority aging recovered
+most fairness (`0.776 -> 0.992`) and reduced low-priority average queue wait by
+11.4% relative to strict priority, while still keeping high-priority average
+TTFT 40.4% better than FIFO.
 
 ### Key Observations
 
 1. **Fairness vs responsiveness**: FIFO ensures every request is served in order, which
    is ideal when all requests have equal importance. Priority scheduling introduces
    starvation risk for low-priority requests but can dramatically reduce TTFT for
-   high-priority interactive traffic.
+   high-priority interactive traffic. Aging is a middle ground: old low-priority
+   requests gradually become competitive without removing priority differentiation.
 
 2. **Batching with priority**: When priority scheduling is combined with dynamic
-   batching, high-priority requests are selected first during batch formation, so
-   low-priority requests may experience extended queue wait times even at moderate
-   concurrency.
+   batching, strict priority selects high-priority requests first during batch
+   formation. Aging changes later batch rounds as old low-priority requests gain
+   effective priority.
 
 ## Batching vs No Batching
 

@@ -88,8 +88,14 @@ async def run_scheduler_benchmark(
     max_batch_size: int,
     batch_timeout_ms: int,
     benchmark_timeout_s: float,
+    aging_boost_interval_s: float = 0.0,
 ) -> dict[str, object]:
-    scheduler = PriorityScheduler() if scheduler_name == "priority" else FIFOScheduler()
+    if scheduler_name == "priority_aging":
+        scheduler = PriorityScheduler(aging_boost_interval_s=aging_boost_interval_s)
+    elif scheduler_name == "priority":
+        scheduler = PriorityScheduler()
+    else:
+        scheduler = FIFOScheduler()
     manager = WorkerManager(
         scheduler=scheduler,
         backend=MockBackend(
@@ -116,6 +122,9 @@ async def run_scheduler_benchmark(
 
     return {
         "scheduler": scheduler_name,
+        "aging_boost_interval_s": (
+            aging_boost_interval_s if scheduler_name == "priority_aging" else 0.0
+        ),
         "observations": [asdict(observation) for observation in observations],
         "summary": summarize_observations(observations),
     }
@@ -213,6 +222,16 @@ async def run_priority_suite(args: argparse.Namespace) -> dict[str, object]:
         batch_timeout_ms=args.batch_timeout_ms,
         benchmark_timeout_s=args.benchmark_timeout_s,
     )
+    priority_aging = await run_scheduler_benchmark(
+        scheduler_name="priority_aging",
+        workload=workload,
+        prefill_latency_ms=args.prefill_latency_ms,
+        decode_latency_ms=args.decode_latency_ms,
+        max_batch_size=args.max_batch_size,
+        batch_timeout_ms=args.batch_timeout_ms,
+        benchmark_timeout_s=args.benchmark_timeout_s,
+        aging_boost_interval_s=args.aging_boost_interval_ms / 1000,
+    )
     return _round_nested(
         {
             "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -228,15 +247,27 @@ async def run_priority_suite(args: argparse.Namespace) -> dict[str, object]:
                 "decode_latency_ms": args.decode_latency_ms,
                 "max_batch_size": args.max_batch_size,
                 "batch_timeout_ms": args.batch_timeout_ms,
+                "aging_boost_interval_ms": args.aging_boost_interval_ms,
             },
             "runs": {
                 "fifo": fifo,
                 "priority": priority,
+                "priority_aging": priority_aging,
             },
-            "comparison": compare_summaries(
-                fifo["summary"],  # type: ignore[arg-type]
-                priority["summary"],  # type: ignore[arg-type]
-            ),
+            "comparison": {
+                "priority_vs_fifo": compare_summaries(
+                    fifo["summary"],  # type: ignore[arg-type]
+                    priority["summary"],  # type: ignore[arg-type]
+                ),
+                "aging_vs_priority": compare_summaries(
+                    priority["summary"],  # type: ignore[arg-type]
+                    priority_aging["summary"],  # type: ignore[arg-type]
+                ),
+                "aging_vs_fifo": compare_summaries(
+                    fifo["summary"],  # type: ignore[arg-type]
+                    priority_aging["summary"],  # type: ignore[arg-type]
+                ),
+            },
             "metric_notes": {
                 "ttft_s": "created_at to first_token_at",
                 "queue_wait_s": "enqueued_at to started_at",
@@ -245,6 +276,10 @@ async def run_priority_suite(args: argparse.Namespace) -> dict[str, object]:
                 ),
                 "starvation": (
                     "Low-priority requests whose queue wait exceeds threshold_s"
+                ),
+                "priority_aging": (
+                    "Low-priority requests gain one effective priority level for "
+                    "each aging_boost_interval_ms spent queued"
                 ),
             },
         }
@@ -388,6 +423,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--decode-latency-ms", type=int, default=10)
     parser.add_argument("--max-batch-size", type=int, default=4)
     parser.add_argument("--batch-timeout-ms", type=int, default=0)
+    parser.add_argument("--aging-boost-interval-ms", type=int, default=20)
     parser.add_argument("--benchmark-timeout-s", type=float, default=30.0)
     parser.add_argument(
         "--output",
