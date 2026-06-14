@@ -9,7 +9,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Metrics with Prometheus histograms, optional GPU telemetry, and structured JSON logging
 - Benchmark scripts and saved result artifacts
 - Pinned development requirements and CI quality gates
-- 60 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 65 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -38,6 +38,7 @@ Completed:
 - worker loop that forms and executes mock batches
 - token routing for mixed completion and streaming handles
 - request timeout and streaming disconnect cancellation paths
+- admission control with queue-cap overload protection and token-bucket rate limiting
 - batch size, queue wait, token count, and TTFT measurements
 - FIFO baseline and dynamic batching benchmark entrypoint
 - first mock-backend benchmark report across concurrency levels 1, 8, 16, 32, and 64
@@ -55,6 +56,7 @@ Completed:
 - latency histograms with predefined buckets for queue wait, TTFT, and total latency
 - Prometheus histogram type output with cumulative buckets, sum, and count
 - optional `nvidia-smi` GPU memory/utilization sampler with unavailable fallback
+- rejected-request metrics by reason and priority
 - structured JSON request lifecycle logging with request_id correlation
 - structured logs integrated into API routes, worker manager, and lifecycle
 

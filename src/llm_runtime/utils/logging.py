@@ -15,7 +15,16 @@ class JSONFormatter(logging.Formatter):
         }
         if record.exc_info and record.exc_info[0] is not None:
             entry["exception"] = self.formatException(record.exc_info)
-        for key in ("request_id", "event", "elapsed_ms", "tokens", "batch_size"):
+        for key in (
+            "request_id",
+            "event",
+            "elapsed_ms",
+            "tokens",
+            "batch_size",
+            "reason",
+            "status_code",
+            "error",
+        ):
             value = getattr(record, key, None)
             if value is not None:
                 entry[key] = value
@@ -43,6 +52,22 @@ class RequestLogger:
         self._logger.info(
             "request enqueued",
             extra={"request_id": request_id, "event": "request_enqueued"},
+        )
+
+    def request_rejected(
+        self,
+        request_id: str,
+        reason: str,
+        status_code: int,
+    ) -> None:
+        self._logger.info(
+            "request rejected",
+            extra={
+                "request_id": request_id,
+                "event": "request_rejected",
+                "reason": reason,
+                "status_code": status_code,
+            },
         )
 
     def batch_formed(self, batch_size: int, request_ids: list[str]) -> None:

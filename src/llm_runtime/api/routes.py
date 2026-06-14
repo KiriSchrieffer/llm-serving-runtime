@@ -49,12 +49,28 @@ async def create_chat_completion(
 ) -> StreamingResponse | ChatCompletionResponse:
     services = _services(http_request)
     runtime_request = RuntimeRequest.from_chat_request(body)
-    services.metrics.record_request()
     services.request_logger.request_received(
         request_id=runtime_request.request_id,
         model=body.model,
         stream=body.stream,
     )
+    admission = services.admission.admit(queue_size=services.scheduler.size())
+    if not admission.accepted:
+        services.metrics.record_rejection(
+            priority=runtime_request.priority,
+            reason=admission.reason,
+        )
+        services.request_logger.request_rejected(
+            request_id=runtime_request.request_id,
+            reason=admission.reason,
+            status_code=admission.status_code,
+        )
+        raise HTTPException(
+            status_code=admission.status_code,
+            detail=admission.detail,
+        )
+
+    services.metrics.record_request()
 
     if body.stream:
         stream_handle = StreamingHandle.create()

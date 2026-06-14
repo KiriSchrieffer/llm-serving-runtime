@@ -5,6 +5,7 @@ from llm_runtime.backends.llama_cpp_backend import LlamaCppBackend
 from llm_runtime.backends.mock_backend import MockBackend
 from llm_runtime.backends.vllm_backend import VLLMBackend
 from llm_runtime.config import Settings, get_settings
+from llm_runtime.core.admission import AdmissionController
 from llm_runtime.metrics.collector import MetricsCollector
 from llm_runtime.scheduler.base import Scheduler
 from llm_runtime.scheduler.fifo import FIFOScheduler
@@ -60,6 +61,7 @@ class RuntimeServices:
 
     metrics: MetricsCollector
     scheduler: Scheduler
+    admission: AdmissionController
     manager: WorkerManager
     request_logger: RequestLogger
     request_timeout_s: float
@@ -74,6 +76,11 @@ class RuntimeServices:
         selected_backend = backend or _build_backend(configured)
         metrics = MetricsCollector()
         scheduler = _build_scheduler(configured)
+        admission = AdmissionController(
+            max_queue_size=configured.max_queue_size,
+            request_rate_limit_per_s=configured.request_rate_limit_per_s,
+            request_rate_limit_burst=configured.request_rate_limit_burst,
+        )
         request_logger = RequestLogger()
         batch_size, batch_timeout = _dispatch_batch_params(configured, selected_backend)
         manager = WorkerManager(
@@ -87,6 +94,7 @@ class RuntimeServices:
         return cls(
             metrics=metrics,
             scheduler=scheduler,
+            admission=admission,
             manager=manager,
             request_logger=request_logger,
             request_timeout_s=configured.request_timeout_s,

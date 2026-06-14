@@ -22,6 +22,9 @@ class Settings(BaseModel):
     max_batch_size: int = Field(default=8, ge=1)
     batch_timeout_ms: int = Field(default=10, ge=0)
     request_timeout_s: float = Field(default=120.0, gt=0)
+    max_queue_size: int = Field(default=0, ge=0)
+    request_rate_limit_per_s: float = Field(default=0.0, ge=0)
+    request_rate_limit_burst: int = Field(default=0, ge=0)
     model_path: str = _DEFAULT_MODEL
     n_ctx: int = Field(default=2048, ge=128)
     n_gpu_layers: int = 0
@@ -45,6 +48,13 @@ def get_settings() -> Settings:
         max_batch_size=int(os.getenv("LLM_RUNTIME_MAX_BATCH_SIZE", "8")),
         batch_timeout_ms=int(os.getenv("LLM_RUNTIME_BATCH_TIMEOUT_MS", "10")),
         request_timeout_s=float(os.getenv("LLM_RUNTIME_REQUEST_TIMEOUT_S", "120")),
+        max_queue_size=int(os.getenv("LLM_RUNTIME_MAX_QUEUE_SIZE", "0")),
+        request_rate_limit_per_s=float(
+            os.getenv("LLM_RUNTIME_REQUEST_RATE_LIMIT_PER_S", "0")
+        ),
+        request_rate_limit_burst=int(
+            os.getenv("LLM_RUNTIME_REQUEST_RATE_LIMIT_BURST", "0")
+        ),
         model_path=os.getenv("LLM_RUNTIME_MODEL_PATH", _DEFAULT_MODEL),
         n_ctx=int(os.getenv("LLM_RUNTIME_N_CTX", "2048")),
         n_gpu_layers=int(os.getenv("LLM_RUNTIME_N_GPU_LAYERS", "0")),

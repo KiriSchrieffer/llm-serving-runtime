@@ -22,7 +22,8 @@ The goal is to make tradeoffs visible:
 ```mermaid
 flowchart LR
     Client["HTTP / SSE client"] --> API["FastAPI API<br/>/v1/chat/completions"]
-    API --> Request["RuntimeRequest<br/>priority, stream flag, timing"]
+    API --> Admission["AdmissionController<br/>queue cap + token bucket"]
+    Admission --> Request["RuntimeRequest<br/>priority, stream flag, timing"]
     Request --> Scheduler["Scheduler<br/>FIFO or priority"]
     Scheduler --> Worker["WorkerManager<br/>batch formation + dispatch"]
     Worker --> Backend["Backend adapter<br/>mock / llama.cpp / vLLM"]
@@ -39,6 +40,8 @@ flowchart LR
 The runtime has these layers:
 
 - **API layer**: FastAPI routes for health, metrics, and OpenAI-style chat completions.
+- **Admission control**: optional queue-cap and token-bucket guards that reject
+  overload before requests enter the scheduler.
 - **Core request model**: internal request object with ID, messages, priority, timing, stream flag, and sampling params.
 - **Scheduler**: FIFO and priority-based schedulers, both with dynamic batch formation using configurable size and timeout.
 - **Backend**: abstract backend interface with mock, llama.cpp, and vLLM adapters. The real backends manage external `llama-server` / `vllm serve` subprocesses.
@@ -64,15 +67,18 @@ What is implemented and tested:
 - background async worker execution with per-request response channels
 - dynamic micro-batching with configurable maximum size and collection timeout
 - non-streaming request timeout handling and streaming disconnect cancellation
+- optional admission control with maximum queue size and token-bucket request
+  rate limiting
 - batch-aware mock backend with shared prefill/decode simulation
 - batch size, queue wait, TTFT, total latency, and token metrics
 - optional `nvidia-smi` GPU memory/utilization sampler with unavailable fallback
 - priority scheduler benchmark with high-priority TTFT, low-priority queue wait,
   starvation, fairness, and aging-policy metrics
+- rejected-request metrics by reason and priority
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
 - CI quality gates with `ruff`, `mypy`, and `pytest`
-- pytest coverage for core paths (60 test cases)
+- pytest coverage for core paths (65 test cases)
 
 Known limitations:
 
@@ -81,7 +87,7 @@ Known limitations:
 - vLLM support is an adapter boundary; it requires a local vLLM installation and model access
 - GPU metrics use `nvidia-smi`; unsupported hosts report `unavailable`
 - Redis-backed queues
-- production authentication, rate limiting, and multi-node serving
+- production authentication, distributed rate limiting, and multi-node serving
 
 ## Benchmark Coverage
 
@@ -131,6 +137,9 @@ Abbreviated JSON output after a small mock request:
   "request_count": 1,
   "completed_count": 1,
   "failed_count": 0,
+  "rejected_count": 0,
+  "rejections_by_reason": {},
+  "rejections_by_priority": {},
   "active_requests": 0,
   "generated_tokens_total": 4,
   "batch_count": 1,
@@ -182,6 +191,19 @@ data: {"id": "chatcmpl-...", "object": "chat.completion.chunk", "model": "mock-l
 
 data: [DONE]
 ```
+
+Admission control example:
+
+```bash
+LLM_RUNTIME_MAX_QUEUE_SIZE=128 \
+LLM_RUNTIME_REQUEST_RATE_LIMIT_PER_S=50 \
+LLM_RUNTIME_REQUEST_RATE_LIMIT_BURST=100 \
+uvicorn llm_runtime.main:app
+```
+
+When enabled, queue overload is rejected before enqueue with `503`, and
+token-bucket rate limiting is rejected with `429`. Rejections are exported in
+JSON metrics and Prometheus text format.
 
 Run tests:
 

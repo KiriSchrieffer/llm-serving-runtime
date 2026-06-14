@@ -96,6 +96,26 @@ def test_collector_snapshot_includes_histograms():
     assert snap["queue_wait_histogram"]["count"] == 0
 
 
+def test_collector_records_rejections_in_json_and_prometheus():
+    collector = MetricsCollector()
+
+    collector.record_rejection(priority=10, reason="queue_full")
+
+    snap = collector.snapshot()
+    prom = collector.snapshot_prometheus()
+
+    assert snap["rejected_count"] == 1
+    assert snap["rejections_by_reason"] == {"queue_full": 1}
+    assert snap["rejections_by_priority"] == {"10": 1}
+    assert 'llm_requests_total{status="received"} 1' in prom
+    assert 'llm_requests_total{status="accepted"} 0' in prom
+    assert 'llm_requests_total{status="rejected"} 1' in prom
+    assert (
+        'llm_rejected_requests_total{reason="queue_full",priority="10"} 1'
+        in prom
+    )
+
+
 def test_json_formatter_produces_valid_json():
     formatter = JSONFormatter()
     record = logging.LogRecord(

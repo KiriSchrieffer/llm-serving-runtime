@@ -77,6 +77,10 @@ class MetricsCollector:
         self.request_count = 0
         self.completed_count = 0
         self.failed_count = 0
+        self.rejected_count = 0
+        self.rejections_by_reason: Counter[str] = Counter()
+        self.rejections_by_priority: Counter[str] = Counter()
+        self.rejections_by_reason_priority: Counter[tuple[str, str]] = Counter()
         self.active_requests = 0
         self.generated_tokens_total = 0
         self.batch_count = 0
@@ -105,6 +109,14 @@ class MetricsCollector:
         self.active_requests = max(0, self.active_requests - 1)
         self._record_timing(request)
 
+    def record_rejection(self, priority: int, reason: str) -> None:
+        normalized_reason = reason or "unknown"
+        priority_label = str(priority)
+        self.rejected_count += 1
+        self.rejections_by_reason[normalized_reason] += 1
+        self.rejections_by_priority[priority_label] += 1
+        self.rejections_by_reason_priority[(normalized_reason, priority_label)] += 1
+
     def record_batch(self, batch_size: int) -> None:
         self.batch_count += 1
         self.batch_sizes.append(batch_size)
@@ -115,6 +127,11 @@ class MetricsCollector:
             "request_count": self.request_count,
             "completed_count": self.completed_count,
             "failed_count": self.failed_count,
+            "rejected_count": self.rejected_count,
+            "rejections_by_reason": dict(sorted(self.rejections_by_reason.items())),
+            "rejections_by_priority": dict(
+                sorted(self.rejections_by_priority.items())
+            ),
             "active_requests": self.active_requests,
             "generated_tokens_total": self.generated_tokens_total,
             "batch_count": self.batch_count,
@@ -148,9 +165,25 @@ class MetricsCollector:
 
         _add("# HELP llm_requests_total Total requests received.")
         _add("# TYPE llm_requests_total counter")
-        _add(f'llm_requests_total{{status="received"}} {self.request_count}')
+        received_count = self.request_count + self.rejected_count
+        _add(f'llm_requests_total{{status="received"}} {received_count}')
+        _add(f'llm_requests_total{{status="accepted"}} {self.request_count}')
         _add(f'llm_requests_total{{status="completed"}} {self.completed_count}')
         _add(f'llm_requests_total{{status="failed"}} {self.failed_count}')
+        _add(f'llm_requests_total{{status="rejected"}} {self.rejected_count}')
+
+        _add("")
+        _add("# HELP llm_rejected_requests_total Total rejected requests.")
+        _add("# TYPE llm_rejected_requests_total counter")
+        for (
+            reason,
+            priority,
+        ), count in sorted(self.rejections_by_reason_priority.items()):
+            _add(
+                'llm_rejected_requests_total'
+                f'{{reason="{_escape_label(reason)}",priority="{_escape_label(priority)}"}} '
+                f"{count}"
+            )
 
         _add("")
         _add("# HELP llm_generated_tokens_total Total generated tokens.")
