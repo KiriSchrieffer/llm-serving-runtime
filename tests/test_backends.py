@@ -67,6 +67,46 @@ def test_vllm_backend_constructor_custom():
     assert backend._max_model_len == 4096
 
 
+def test_vllm_chat_payload_includes_served_model():
+    from llm_runtime.api.schemas import ChatCompletionRequest
+    from llm_runtime.core.request import RuntimeRequest
+
+    backend = VLLMBackend(model_path="Qwen/Qwen2.5-1.5B-Instruct")
+    request = RuntimeRequest.from_chat_request(
+        ChatCompletionRequest(
+            messages=[{"role": "user", "content": "hello"}],
+            max_tokens=8,
+            temperature=0.0,
+        )
+    )
+
+    payload = backend._chat_payload(request)
+
+    assert payload["model"] == "Qwen/Qwen2.5-1.5B-Instruct"
+    assert payload["stream"] is True
+    assert payload["messages"] == [{"role": "user", "content": "hello"}]
+
+
+def test_llama_cpp_chat_payload_includes_model_path():
+    from llm_runtime.api.schemas import ChatCompletionRequest
+    from llm_runtime.core.request import RuntimeRequest
+
+    backend = LlamaCppBackend(model_path="/models/qwen.gguf")
+    request = RuntimeRequest.from_chat_request(
+        ChatCompletionRequest(
+            messages=[{"role": "user", "content": "hello"}],
+            max_tokens=8,
+            temperature=0.0,
+        )
+    )
+
+    payload = backend._chat_payload(request)
+
+    assert payload["model"] == "/models/qwen.gguf"
+    assert payload["stream"] is True
+    assert payload["messages"] == [{"role": "user", "content": "hello"}]
+
+
 @pytest.mark.asyncio
 async def test_vllm_generate_raises_when_not_started():
     backend = VLLMBackend(model_path="meta-llama/Llama-2-7b-hf")

@@ -108,21 +108,8 @@ class LlamaCppBackend(Backend):
         if client is None:
             raise RuntimeError("llama-server not started; call start() first")
 
-        messages = [
-            {"role": msg.role, "content": msg.content}
-            for msg in request.messages
-        ]
-
-        payload = {
-            "messages": messages,
-            "max_tokens": request.sampling.max_tokens,
-            "temperature": request.sampling.temperature,
-            "top_p": request.sampling.top_p,
-            "stream": True,
-        }
-
         async with client.stream(
-            "POST", "/v1/chat/completions", json=payload
+            "POST", "/v1/chat/completions", json=self._chat_payload(request)
         ) as resp:
             resp.raise_for_status()
             async for raw_line in resp.aiter_lines():
@@ -135,3 +122,16 @@ class LlamaCppBackend(Backend):
                         token = choice.get("delta", {}).get("content", "")
                         if token:
                             yield token
+
+    def _chat_payload(self, request: RuntimeRequest) -> dict[str, object]:
+        return {
+            "model": self._model_path,
+            "messages": [
+                {"role": msg.role, "content": msg.content}
+                for msg in request.messages
+            ],
+            "max_tokens": request.sampling.max_tokens,
+            "temperature": request.sampling.temperature,
+            "top_p": request.sampling.top_p,
+            "stream": True,
+        }
