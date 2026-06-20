@@ -1,0 +1,103 @@
+{
+    "request_count": 51,
+    "completed_count": 51,
+    "failed_count": 0,
+    "rejected_count": 0,
+    "rejections_by_reason": {},
+    "rejections_by_priority": {},
+    "active_requests": 0,
+    "generated_tokens_total": 1488,
+    "batch_count": 51,
+    "batch_size_avg": 1.0,
+    "batch_size_max": 1,
+    "batch_size_distribution": {
+        "1": 51
+    },
+    "queue_wait_time_avg_s": 0.18215337359145575,
+    "queue_wait_time_p50_s": 0.14147323369979858,
+    "queue_wait_time_p95_s": 0.456586261279881,
+    "queue_wait_time_p99_s": 0.48811123985797167,
+    "queue_wait_histogram": {
+        "count": 51,
+        "sum": 9.289822,
+        "buckets": {
+            "0.001": 11,
+            "0.005": 0,
+            "0.01": 0,
+            "0.025": 0,
+            "0.05": 0,
+            "0.1": 8,
+            "0.25": 16,
+            "0.5": 16,
+            "1.0": 0,
+            "2.5": 0,
+            "5.0": 0,
+            "10.0": 0
+        },
+        "+Inf": 0
+    },
+    "ttft_avg_s": 0.21966614274709834,
+    "ttft_p50_s": 0.18930462282150984,
+    "ttft_p95_s": 0.48294506780803204,
+    "ttft_p99_s": 1.092838441953063,
+    "ttft_histogram": {
+        "count": 51,
+        "sum": 11.202973,
+        "buckets": {
+            "0.001": 0,
+            "0.005": 0,
+            "0.01": 0,
+            "0.025": 6,
+            "0.05": 4,
+            "0.1": 7,
+            "0.25": 16,
+            "0.5": 16,
+            "1.0": 1,
+            "2.5": 1,
+            "5.0": 0,
+            "10.0": 0
+        },
+        "+Inf": 0
+    },
+    "total_latency_avg_s": 0.2723946867729811,
+    "total_latency_p50_s": 0.239791514351964,
+    "total_latency_p95_s": 0.5273894043639302,
+    "total_latency_p99_s": 1.1083707818761468,
+    "total_latency_histogram": {
+        "count": 51,
+        "sum": 13.892129,
+        "buckets": {
+            "0.001": 0,
+            "0.005": 0,
+            "0.01": 0,
+            "0.025": 0,
+            "0.05": 0,
+            "0.1": 8,
+            "0.25": 18,
+            "0.5": 20,
+            "1.0": 4,
+            "2.5": 1,
+            "5.0": 0,
+            "10.0": 0
+        },
+        "+Inf": 0
+    },
+    "gpu": {
+        "status": "available",
+        "source": "nvidia-smi",
+        "gpu_count": 1,
+        "memory_used_mb": 21074,
+        "memory_total_mb": 24564,
+        "utilization_pct": 0,
+        "gpus": [
+            {
+                "index": 0,
+                "name": "NVIDIA GeForce RTX 4090",
+                "memory_used_mb": 21074,
+                "memory_total_mb": 24564,
+                "utilization_pct": 0
+            }
+        ]
+    },
+    "queue_size": 0
+}

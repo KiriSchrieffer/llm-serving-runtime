@@ -72,6 +72,7 @@ What is implemented and tested:
 - batch-aware mock backend with shared prefill/decode simulation
 - batch size, queue wait, TTFT, total latency, and token metrics
 - optional `nvidia-smi` GPU memory/utilization sampler with unavailable fallback
+- real vLLM GPU smoke/load artifacts on an RTX 4090 with Qwen2.5-0.5B-Instruct
 - priority scheduler benchmark with high-priority TTFT, low-priority queue wait,
   starvation, fairness, and aging-policy metrics
 - rejected-request metrics by reason and priority
@@ -84,7 +85,7 @@ Known limitations:
 
 - mock-backend benchmarks validate serving behavior, not real GPU throughput
 - llama.cpp benchmark artifacts are CPU-only and hardware-specific
-- vLLM support is an adapter boundary; it requires a local vLLM installation and model access
+- vLLM GPU artifacts validate backend integration; they are not tuned maximum-throughput runs
 - GPU metrics use `nvidia-smi`; unsupported hosts report `unavailable`
 - Redis-backed queues
 - production authentication, distributed rate limiting, and multi-node serving
@@ -99,9 +100,12 @@ Benchmark scripts and saved artifacts track:
 - TTFT
 - queue wait time
 - batch size distribution
+- vLLM GPU smoke/load latency and throughput
 - priority scheduling fairness/starvation tradeoffs
 
-Mock-backend runs are complete and documented. The repository also includes CPU-only llama.cpp notes to show how mock results differ from a real backend.
+Mock-backend runs are complete and documented. The repository also includes
+CPU-only llama.cpp notes and RTX 4090 vLLM smoke/load artifacts to show how
+mock results differ from real backends.
 The curated benchmark write-up lives in `docs/benchmark_report.md`; raw JSON
 artifacts live under `benchmarks/results/`.
 

@@ -83,6 +83,7 @@ Completed:
 - curated benchmark summary separated from raw JSON and generated scratch reports
 - `.env.example` and `.env.benchmark` for all configuration options
 - retryable cloud GPU smoke-test asset downloader for vLLM model weights
+- RTX 4090 vLLM smoke/load artifacts with GPU metrics and saved JSON results
 - pinned `requirements-dev.txt` used by local development and GitHub Actions
 - CI checks for `ruff`, `mypy`, and `pytest`
 

@@ -1,0 +1,22 @@
+{
+  "requests": 16,
+  "concurrency": 4,
+  "max_tokens": 32,
+  "tokens_per_second": 417.56281525805673,
+  "p50_latency_s": 0.2062802081927657,
+  "p95_latency_s": 0.29068818036466837,
+  "runtime_metrics": {
+    "completed_count": 16,
+    "failed_count": 0,
+    "generated_tokens_total": 497,
+    "queue_wait_time_avg_s": 0.11024585244012997,
+    "ttft_avg_s": 0.12715855811256915,
+    "total_latency_avg_s": 0.18281091790413484,
+    "batch_count": 16,
+    "batch_size_avg": 1.0,
+    "batch_size_max": 1,
+    "batch_size_distribution": {
+      "1": 16
+    }
+  }
+}

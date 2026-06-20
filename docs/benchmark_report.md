@@ -6,6 +6,36 @@ kept as JSON under `benchmarks/results/`. The helper script
 JSON files, but generated Markdown is ignored by git so this document remains the
 single narrative benchmark report.
 
+## RTX 4090 vLLM GPU Smoke/Load Test
+
+Recorded on June 20, 2026 on a single NVIDIA GeForce RTX 4090 using the vLLM
+backend and `Qwen/Qwen2.5-0.5B-Instruct`. The model was downloaded to a local
+`models/` directory, then served through this runtime's FastAPI API, scheduler,
+worker, and vLLM backend adapter. Each request used `max_tokens=32`.
+
+Raw result artifacts:
+
+- `benchmarks/results/vllm_gpu_smoke_0_5b.json`
+- `benchmarks/results/vllm_gpu_load_0_5b_c8.json`
+- `benchmarks/results/vllm_gpu_metrics_after_0_5b.json`
+
+| Run | Requests | Concurrency | Tokens/s | P50 latency ms | P95 latency ms | Avg TTFT ms | Avg total latency ms | Failed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Smoke | 16 | 4 | 417.6 | 206.3 | 290.7 | 127.2 | 182.8 | 0 |
+| Load | 32 | 8 | 426.2 | 326.6 | 539.6 | 250.5 | 302.3 | 0 |
+
+The post-run metrics snapshot reported `gpu.status=available` with one RTX
+4090, 24,564 MB total GPU memory, and 21,074 MB used by the vLLM-backed runtime.
+`nvidia-smi` utilization in the saved snapshot was 0% because it was captured
+after the load test had completed.
+
+This is a real GPU backend integration result, not a vLLM maximum-throughput
+tuning run. The runtime marks vLLM as `NATIVE_BATCHING`, so software-layer
+micro-batching is bypassed and the recorded batch size remains 1. The result is
+therefore best interpreted as evidence that the project can launch vLLM, route
+real model requests, stream completions, collect GPU metrics, and save
+reproducible latency/throughput artifacts on cloud GPU hardware.
+
 ## First Mock Backend Comparison
 
 Recorded on May 26, 2026 using a local Uvicorn service and the mock backend.
