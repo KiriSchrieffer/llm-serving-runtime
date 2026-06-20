@@ -9,7 +9,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Metrics with Prometheus histograms, optional GPU telemetry, and structured JSON logging
 - Benchmark scripts and saved result artifacts
 - Pinned development requirements and CI quality gates
-- 65 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 70 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -82,6 +82,7 @@ Completed:
 - documented performance tradeoffs (`docs/performance_tradeoffs.md`)
 - curated benchmark summary separated from raw JSON and generated scratch reports
 - `.env.example` and `.env.benchmark` for all configuration options
+- retryable cloud GPU smoke-test asset downloader for vLLM model weights
 - pinned `requirements-dev.txt` used by local development and GitHub Actions
 - CI checks for `ruff`, `mypy`, and `pytest`
 

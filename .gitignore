@@ -11,6 +11,8 @@ htmlcov/
 dist/
 build/
 .env
+.hf-cache/
+models/
 benchmarks/results/*.csv
 benchmarks/results/*.log
 benchmarks/results/*.md

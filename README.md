@@ -78,7 +78,7 @@ What is implemented and tested:
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
 - CI quality gates with `ruff`, `mypy`, and `pytest`
-- pytest coverage for core paths (65 test cases)
+- pytest coverage for core paths (70 test cases)
 
 Known limitations:
 
@@ -218,6 +218,37 @@ python -m ruff check src tests benchmarks
 python -m mypy
 python -m pytest -q
 ```
+
+## Cloud GPU Smoke Assets
+
+For the first vLLM GPU smoke test, download only the model assets needed to
+serve `Qwen/Qwen2.5-1.5B-Instruct`. The helper is retryable, writes to a local
+`models/` directory, and keeps Hugging Face cache data under `.hf-cache/` so a
+failed network session can usually continue from partial downloads.
+
+```bash
+python -m pip install "huggingface_hub>=0.24"
+python scripts/download_vllm_smoke_assets.py \
+  --hf-endpoint https://hf-mirror.com \
+  --retries 20 \
+  --retry-sleep-s 30 \
+  --max-workers 1
+```
+
+When the script finishes, copy the printed `export ...` lines, then start the
+runtime with the local model directory:
+
+```bash
+export LLM_RUNTIME_BACKEND=vllm
+export LLM_RUNTIME_VLLM_GPU_MEMORY_UTILIZATION=0.85
+export LLM_RUNTIME_VLLM_MAX_MODEL_LEN=2048
+export LLM_RUNTIME_REQUEST_TIMEOUT_S=300
+uvicorn llm_runtime.main:app --host 0.0.0.0 --port 8000
+```
+
+If the mirror is unavailable, omit `--hf-endpoint https://hf-mirror.com` and
+rerun the same command. If the SSH connection drops, reconnect and rerun the
+same command from the project directory.
 
 ## Run with Docker
 
