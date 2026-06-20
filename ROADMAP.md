@@ -69,7 +69,7 @@ Completed:
 - vLLM adapter with `vllm serve` subprocess management
 - vLLM configuration through `LLM_RUNTIME_VLLM_*` environment variables
 - backend capability-aware worker dispatch (bypasses micro-batching when backend has NATIVE_BATCHING)
-- mock vs llama.cpp benchmark comparison script (`benchmarks/compare_backends.py`)
+- mock vs llama.cpp benchmark support through `benchmarks/run_local_comparison.py`
 - CPU-only llama.cpp benchmark notes for Qwen3-4B-Instruct-Q4_K_M
 
 ## Phase 4: Reproducible Experiments

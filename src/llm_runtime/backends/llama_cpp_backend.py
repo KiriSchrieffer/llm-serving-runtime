@@ -1,7 +1,6 @@
 import asyncio
 import json
 from collections.abc import AsyncIterator
-from pathlib import Path
 
 import httpx
 
@@ -9,7 +8,7 @@ from llm_runtime.backends.base import Backend, BackendCapability
 from llm_runtime.core.request import RuntimeRequest
 
 
-_DEFAULT_SERVER = str(Path(r"E:\llama.cpp\llama-server.exe"))
+_DEFAULT_SERVER = "llama-server"
 
 
 class LlamaCppBackend(Backend):

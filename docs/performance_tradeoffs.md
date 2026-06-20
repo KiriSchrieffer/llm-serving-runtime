@@ -111,6 +111,11 @@ TTFT 40.4% better than FIFO.
 Measured on an Intel Alder Lake CPU from the `run_local_comparison.py` benchmark
 suite (16 requests per level, 16 max_tokens, batch_size=4, timeout=50ms):
 
+Raw result artifacts:
+
+- `benchmarks/results/llama_fifo_vs_dynamic.json/fifo_baseline.json`
+- `benchmarks/results/llama_fifo_vs_dynamic.json/dynamic_batching.json`
+
 | Concurrency | Mode | tok/s | Single-req latency | Batch avg |
 |---|---|---|---|---|
 | 1 | FIFO | 14.8 | ~1.1s | 1.0 |
