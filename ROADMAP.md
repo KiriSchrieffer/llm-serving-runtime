@@ -9,7 +9,7 @@ optional real-backend adapters that require local model/runtime setup.
 - Metrics with Prometheus histograms, optional GPU telemetry, and structured JSON logging
 - Benchmark scripts and saved result artifacts
 - Pinned development requirements and CI quality gates
-- 70 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
+- 73 pytest test cases covering API, scheduling, batching, streaming, metrics, and backend wiring
 
 ## Phase 0: MVP Skeleton
 
@@ -69,6 +69,7 @@ Completed:
 - vLLM adapter with `vllm serve` subprocess management
 - vLLM configuration through `LLM_RUNTIME_VLLM_*` environment variables
 - backend capability-aware worker dispatch (bypasses micro-batching when backend has NATIVE_BATCHING)
+- native-backend worker fan-out for vLLM continuous batching benchmarks
 - mock vs llama.cpp benchmark support through `benchmarks/run_local_comparison.py`
 - CPU-only llama.cpp benchmark notes for Qwen3-4B-Instruct-Q4_K_M
 

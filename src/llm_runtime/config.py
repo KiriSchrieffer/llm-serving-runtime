@@ -25,6 +25,7 @@ class Settings(BaseModel):
     max_queue_size: int = Field(default=0, ge=0)
     request_rate_limit_per_s: float = Field(default=0.0, ge=0)
     request_rate_limit_burst: int = Field(default=0, ge=0)
+    native_backend_concurrency: int = Field(default=4, ge=1)
     model_path: str = _DEFAULT_MODEL
     n_ctx: int = Field(default=2048, ge=128)
     n_gpu_layers: int = 0
@@ -54,6 +55,9 @@ def get_settings() -> Settings:
         ),
         request_rate_limit_burst=int(
             os.getenv("LLM_RUNTIME_REQUEST_RATE_LIMIT_BURST", "0")
+        ),
+        native_backend_concurrency=int(
+            os.getenv("LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY", "4")
         ),
         model_path=os.getenv("LLM_RUNTIME_MODEL_PATH", _DEFAULT_MODEL),
         n_ctx=int(os.getenv("LLM_RUNTIME_N_CTX", "2048")),

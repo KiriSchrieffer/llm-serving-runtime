@@ -29,6 +29,7 @@ class WorkerManager:
         request_logger: RequestLogger,
         max_batch_size: int = 1,
         batch_timeout_ms: int = 0,
+        worker_count: int = 1,
     ) -> None:
         self.scheduler = scheduler
         self.backend = backend
@@ -36,19 +37,24 @@ class WorkerManager:
         self.request_logger = request_logger
         self.max_batch_size = max_batch_size
         self.batch_timeout_ms = batch_timeout_ms
-        self._task: asyncio.Task[None] | None = None
+        self.worker_count = max(1, worker_count)
+        self._tasks: list[asyncio.Task[None]] = []
 
     async def start(self) -> None:
-        if self._task is None:
-            self._task = asyncio.create_task(self._worker_loop())
+        if self._tasks:
+            return
+        self._tasks = [
+            asyncio.create_task(self._worker_loop()) for _ in range(self.worker_count)
+        ]
 
     async def stop(self) -> None:
-        if self._task is None:
+        if not self._tasks:
             return
-        self._task.cancel()
+        for task in self._tasks:
+            task.cancel()
         with suppress(asyncio.CancelledError):
-            await self._task
-        self._task = None
+            await asyncio.gather(*self._tasks)
+        self._tasks = []
 
     async def _worker_loop(self) -> None:
         while True:

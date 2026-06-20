@@ -14,6 +14,11 @@ so the worker routes it to the correct completion future or streaming queue.
 Current metrics include batch count, average and maximum observed batch size,
 batch size distribution, queue wait, TTFT, and generated token count.
 
+Backends that declare `NATIVE_BATCHING`, such as vLLM, bypass runtime-level
+micro-batching (`max_batch_size=1`, `batch_timeout_ms=0`). They can use
+`LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY` worker fan-out to receive concurrent
+requests and perform continuous batching internally.
+
 Future extensions:
 
 - max token budget during batch formation

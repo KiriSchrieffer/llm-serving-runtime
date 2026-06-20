@@ -104,7 +104,9 @@ TTFT 40.4% better than FIFO.
 3. **Native batching bypass**: When a backend declares `NATIVE_BATCHING` (e.g.,
    vLLM), the worker bypasses software-layer micro-batching entirely
    (`max_batch_size=1, batch_timeout_ms=0`). This avoids double-batching and lets
-   the backend manage batch formation internally.
+   the backend manage batch formation internally. For native backends,
+   `LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY` controls how many runtime workers
+   can feed concurrent requests into the backend.
 
 ## LlamaCpp CPU-Only Performance (Qwen3-4B, Alder Lake)
 

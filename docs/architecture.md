@@ -2,13 +2,15 @@
 
 The runtime is organized around a narrow serving path:
 
-API request -> admission control -> internal request + response handle -> dynamic batch scheduler -> background worker -> batch backend events -> response channel -> API response.
+API request -> admission control -> internal request + response handle -> scheduler -> worker manager -> backend events -> response channel -> API response.
 
-The current runtime uses one background async worker started through the FastAPI
-application lifespan. Non-streaming calls wait on their own completion future,
-and streaming calls consume their own event queue. This prevents concurrent
-responses from being mixed while leaving the API schema and backend interface
-stable as requests are dynamically micro-batched and routed back independently.
+The current runtime starts worker loops through the FastAPI application lifespan.
+Non-native backends use one worker so runtime-level micro-batching remains
+stable. Native-batching backends such as vLLM can use multiple workers to feed
+concurrent requests to the backend's own continuous batching engine.
+Non-streaming calls wait on their own completion future, and streaming calls
+consume their own event queue. This prevents concurrent responses from being
+mixed while leaving the API schema and backend interface stable.
 
 Admission control runs before a request is counted active or submitted to the
 scheduler. The default configuration leaves it disabled, but operators can set

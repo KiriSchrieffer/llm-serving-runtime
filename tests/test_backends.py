@@ -7,7 +7,11 @@ from llm_runtime.backends.mock_backend import MockBackend
 from llm_runtime.backends.llama_cpp_backend import LlamaCppBackend
 from llm_runtime.backends.vllm_backend import VLLMBackend
 from llm_runtime.config import Settings
-from llm_runtime.core.lifecycle import _build_backend, _build_scheduler
+from llm_runtime.core.lifecycle import (
+    _build_backend,
+    _build_scheduler,
+    _dispatch_worker_count,
+)
 from llm_runtime.scheduler.priority import PriorityScheduler
 
 
@@ -186,3 +190,17 @@ def test_dispatch_disabled_batching_overrides_all():
     size, timeout = _dispatch_batch_params(settings, backend)
     assert size == 1
     assert timeout == 0
+
+
+def test_native_backend_worker_count_uses_configured_concurrency():
+    backend = VLLMBackend(model_path="test")
+    settings = Settings(native_backend_concurrency=8)
+
+    assert _dispatch_worker_count(settings, backend) == 8
+
+
+def test_non_native_backend_worker_count_remains_single_worker():
+    settings = Settings(native_backend_concurrency=8)
+
+    assert _dispatch_worker_count(settings, MockBackend()) == 1
+    assert _dispatch_worker_count(settings, LlamaCppBackend(model_path="/tmp/model.gguf")) == 1

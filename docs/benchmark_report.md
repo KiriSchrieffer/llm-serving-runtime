@@ -30,11 +30,13 @@ The post-run metrics snapshot reported `gpu.status=available` with one RTX
 after the load test had completed.
 
 This is a real GPU backend integration result, not a vLLM maximum-throughput
-tuning run. The runtime marks vLLM as `NATIVE_BATCHING`, so software-layer
-micro-batching is bypassed and the recorded batch size remains 1. The result is
-therefore best interpreted as evidence that the project can launch vLLM, route
-real model requests, stream completions, collect GPU metrics, and save
-reproducible latency/throughput artifacts on cloud GPU hardware.
+tuning run. It was recorded before native-backend worker fan-out was added, so
+the saved artifact is retained as a single-worker vLLM baseline. The runtime
+marks vLLM as `NATIVE_BATCHING`, so software-layer micro-batching is bypassed
+and the recorded batch size remains 1. The result is best interpreted as
+evidence that the project can launch vLLM, route real model requests, stream
+completions, collect GPU metrics, and save reproducible latency/throughput
+artifacts on cloud GPU hardware.
 
 ## First Mock Backend Comparison
 

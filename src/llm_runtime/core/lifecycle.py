@@ -55,6 +55,13 @@ def _dispatch_batch_params(
     return configured.max_batch_size, configured.batch_timeout_ms
 
 
+def _dispatch_worker_count(configured: Settings, backend: Backend) -> int:
+    """Resolve worker fan-out, allowing native-batching backends to run concurrently."""
+    if BackendCapability.NATIVE_BATCHING in backend.capabilities:
+        return configured.native_backend_concurrency
+    return 1
+
+
 @dataclass(slots=True)
 class RuntimeServices:
     """Process-local runtime dependencies shared by API handlers."""
@@ -83,6 +90,7 @@ class RuntimeServices:
         )
         request_logger = RequestLogger()
         batch_size, batch_timeout = _dispatch_batch_params(configured, selected_backend)
+        worker_count = _dispatch_worker_count(configured, selected_backend)
         manager = WorkerManager(
             scheduler=scheduler,
             backend=selected_backend,
@@ -90,6 +98,7 @@ class RuntimeServices:
             request_logger=request_logger,
             max_batch_size=batch_size,
             batch_timeout_ms=batch_timeout,
+            worker_count=worker_count,
         )
         return cls(
             metrics=metrics,

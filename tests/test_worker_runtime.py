@@ -6,7 +6,13 @@ from threading import Barrier
 
 from fastapi.testclient import TestClient
 
-from llm_runtime.backends.base import Backend, BatchCompleted, BatchEvent, BatchToken
+from llm_runtime.backends.base import (
+    Backend,
+    BackendCapability,
+    BatchCompleted,
+    BatchEvent,
+    BatchToken,
+)
 from llm_runtime.config import Settings
 from llm_runtime.core.lifecycle import RuntimeServices
 from llm_runtime.core.request import RuntimeRequest
@@ -33,6 +39,27 @@ class SlowBackend(Backend):
     async def generate(self, request: RuntimeRequest) -> AsyncIterator[str]:
         await asyncio.sleep(0.05)
         yield "late_token "
+
+
+class SlowNativeBackend(Backend):
+    def __init__(self) -> None:
+        self.active = 0
+        self.max_active = 0
+        self._lock = asyncio.Lock()
+
+    @property
+    def capabilities(self) -> BackendCapability:
+        return BackendCapability.NATIVE_BATCHING
+
+    async def generate(self, request: RuntimeRequest) -> AsyncIterator[str]:
+        async with self._lock:
+            self.active += 1
+            self.max_active = max(self.max_active, self.active)
+        await asyncio.sleep(0.05)
+        label = request.messages[-1].content
+        yield f"{label}_tok0 "
+        async with self._lock:
+            self.active -= 1
 
 
 class PromptBatchBackend(PromptTokenBackend):
@@ -234,6 +261,34 @@ def test_disabling_batching_preserves_single_request_baseline() -> None:
 
     assert backend.batch_sizes == [1, 1]
     assert services.metrics.batch_sizes == [1, 1]
+
+
+def test_native_backend_requests_can_execute_concurrently() -> None:
+    backend = SlowNativeBackend()
+    services = RuntimeServices.create(
+        settings=Settings(native_backend_concurrency=2),
+        backend=backend,
+    )
+    barrier = Barrier(2)
+
+    def send(client: TestClient, label: str) -> str:
+        barrier.wait()
+        response = client.post(
+            "/v1/chat/completions",
+            json={"messages": [{"role": "user", "content": label}], "max_tokens": 1},
+        )
+        assert response.status_code == 200
+        return response.json()["choices"][0]["message"]["content"]
+
+    with TestClient(create_app(services)) as client:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_a = executor.submit(send, client, "A")
+            future_b = executor.submit(send, client, "B")
+            results = {future_a.result(), future_b.result()}
+
+    assert results == {"A_tok0 ", "B_tok0 "}
+    assert backend.max_active == 2
+    assert services.manager.worker_count == 2
 
 
 def test_batch_failure_fails_all_requests() -> None:

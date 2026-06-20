@@ -65,6 +65,8 @@ What is implemented and tested:
 - llama.cpp backend adapter with `llama-server` subprocess lifecycle
 - vLLM backend adapter with `vllm serve` subprocess lifecycle
 - background async worker execution with per-request response channels
+- native-backend worker fan-out so vLLM can receive concurrent requests and
+  manage continuous batching internally
 - dynamic micro-batching with configurable maximum size and collection timeout
 - non-streaming request timeout handling and streaming disconnect cancellation
 - optional admission control with maximum queue size and token-bucket request
@@ -79,7 +81,7 @@ What is implemented and tested:
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
 - CI quality gates with `ruff`, `mypy`, and `pytest`
-- pytest coverage for core paths (70 test cases)
+- pytest coverage for core paths (73 test cases)
 
 Known limitations:
 
@@ -244,6 +246,7 @@ runtime with the local model directory:
 
 ```bash
 export LLM_RUNTIME_BACKEND=vllm
+export LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY=8
 export LLM_RUNTIME_VLLM_GPU_MEMORY_UTILIZATION=0.85
 export LLM_RUNTIME_VLLM_MAX_MODEL_LEN=2048
 export LLM_RUNTIME_REQUEST_TIMEOUT_S=300
@@ -253,6 +256,18 @@ uvicorn llm_runtime.main:app --host 0.0.0.0 --port 8000
 If the mirror is unavailable, omit `--hf-endpoint https://hf-mirror.com` and
 rerun the same command. If the SSH connection drops, reconnect and rerun the
 same command from the project directory.
+
+To record the native-concurrency vLLM benchmark artifact, start the runtime
+with `LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY=8`, then run:
+
+```bash
+python benchmarks/run_load_test.py \
+  --base-url http://127.0.0.1:8000 \
+  --concurrency 8 \
+  --requests 32 \
+  --max-tokens 32 \
+  --output benchmarks/results/vllm_gpu_native_concurrency_0_5b_c8.json
+```
 
 ## Run with Docker
 
