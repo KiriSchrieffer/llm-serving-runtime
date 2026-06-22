@@ -15,7 +15,7 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
-DEFAULT_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+DEFAULT_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
 DEFAULT_OUTPUT_DIR = Path("models")
 DEFAULT_HF_HOME = Path(".hf-cache")
 

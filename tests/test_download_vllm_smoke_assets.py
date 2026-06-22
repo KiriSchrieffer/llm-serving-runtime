@@ -27,6 +27,12 @@ def test_default_local_dir_uses_model_repo_suffix(tmp_path: Path) -> None:
     )
 
 
+def test_default_model_matches_saved_vllm_artifact_family() -> None:
+    script = _load_script()
+
+    assert script.DEFAULT_MODEL == "Qwen/Qwen2.5-0.5B-Instruct"
+
+
 def test_missing_required_assets_detects_complete_model_dir(tmp_path: Path) -> None:
     script = _load_script()
     (tmp_path / "config.json").write_text("{}", encoding="utf-8")

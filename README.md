@@ -225,15 +225,22 @@ python -m mypy
 python -m pytest -q
 ```
 
-## Cloud GPU Smoke Assets
+## Cloud GPU vLLM Benchmark
 
-For the first vLLM GPU smoke test, download only the model assets needed to
-serve `Qwen/Qwen2.5-1.5B-Instruct`. The helper is retryable, writes to a local
+For the vLLM GPU smoke and native-concurrency benchmarks, download only the
+model assets needed to serve `Qwen/Qwen2.5-0.5B-Instruct`. The helper is
+retryable, writes to a local
 `models/` directory, and keeps Hugging Face cache data under `.hf-cache/` so a
 failed network session can usually continue from partial downloads.
 
 ```bash
+cd ~/llm-serving-runtime
+git pull
+git rev-parse --short HEAD
+
+source .venv/bin/activate
 python -m pip install "huggingface_hub>=0.24"
+
 python scripts/download_vllm_smoke_assets.py \
   --hf-endpoint https://hf-mirror.com \
   --retries 20 \
@@ -246,6 +253,7 @@ runtime with the local model directory:
 
 ```bash
 export LLM_RUNTIME_BACKEND=vllm
+export LLM_RUNTIME_MODEL_PATH=/root/llm-serving-runtime/models/Qwen2.5-0.5B-Instruct
 export LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY=8
 export LLM_RUNTIME_VLLM_GPU_MEMORY_UTILIZATION=0.85
 export LLM_RUNTIME_VLLM_MAX_MODEL_LEN=2048
@@ -258,15 +266,23 @@ rerun the same command. If the SSH connection drops, reconnect and rerun the
 same command from the project directory.
 
 To record the native-concurrency vLLM benchmark artifact, start the runtime
-with `LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY=8`, then run:
+with `LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY=8`, then run this from a second
+SSH session:
 
 ```bash
+cd ~/llm-serving-runtime
+source .venv/bin/activate
+
 python benchmarks/run_load_test.py \
   --base-url http://127.0.0.1:8000 \
   --concurrency 8 \
   --requests 32 \
   --max-tokens 32 \
   --output benchmarks/results/vllm_gpu_native_concurrency_0_5b_c8.json
+
+curl -s http://127.0.0.1:8000/metrics \
+  | python -m json.tool \
+  > benchmarks/results/vllm_gpu_metrics_after_native_0_5b_c8.json
 ```
 
 ## Run with Docker
