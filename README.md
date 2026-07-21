@@ -1,9 +1,27 @@
 # GPU-Aware LLM Serving Runtime
 [![CI](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml/badge.svg)](https://github.com/KiriSchrieffer/llm-serving-runtime/actions/workflows/tests.yml)
 
-A small local LLM serving runtime focused on the systems work behind inference serving: async request handling, scheduling, batching, streaming, metrics, and reproducible benchmarking.
+An OpenAI-compatible LLM serving runtime focused on the systems work behind inference serving: async request handling, scheduling, batching, streaming, admission control, metrics, and reproducible benchmarking.
 
-This project is intentionally not an agent framework. It does not implement tools, RAG, fine-tuning, or CUDA kernels. The default path uses a mock backend that simulates prefill and decode latency so the serving path can be tested without a GPU.
+## Benchmark Highlights
+
+A native-concurrency benchmark on a single RTX 4090 used
+`Qwen/Qwen2.5-0.5B-Instruct`, 32 requests, concurrency 8, and 32 output tokens
+per request. Eight runtime workers forwarded requests concurrently while vLLM
+managed continuous batching internally.
+
+| Metric | Single-worker baseline | Native concurrency (8) | Observed change |
+| --- | ---: | ---: | ---: |
+| Throughput | 426.2 tokens/s | 1630.9 tokens/s | 3.83x |
+| P95 latency | 539.6 ms | 177.1 ms | -67.2% |
+| Average TTFT | 250.5 ms | 38.7 ms | -84.5% |
+| Average queue wait | 235.2 ms | 0.79 ms | -99.7% |
+| Failed requests | 0 | 0 | no regression |
+
+[Read the benchmark methodology, environment, and limitations](docs/benchmark_report.md)
+or [inspect the raw JSON artifacts](benchmarks/results/). The baseline software
+versions were not fully recorded, so these figures are presented as an observed
+serving-path comparison rather than a version-locked A/B result.
 
 ## Why This Exists
 
@@ -81,10 +99,14 @@ What is implemented and tested:
 - JSON metrics snapshots and Prometheus-style text exposition
 - structured JSON request lifecycle logging
 - CI quality gates with `ruff`, `mypy`, and `pytest`
-- pytest coverage for core paths (73 test cases)
+- pytest coverage for core paths (74 test cases)
 
 Known limitations:
 
+- the project focuses on serving-runtime mechanics rather than agent tools, RAG,
+  fine-tuning, or custom CUDA kernels
+- the default local path uses a mock backend so the complete serving path can be
+  exercised without a GPU
 - mock-backend benchmarks validate serving behavior, not real GPU throughput
 - llama.cpp benchmark artifacts are CPU-only and hardware-specific
 - vLLM GPU artifacts validate backend integration; they are not tuned maximum-throughput runs
@@ -106,10 +128,10 @@ Benchmark scripts and saved artifacts track:
 - priority scheduling fairness/starvation tradeoffs
 
 Mock-backend runs are complete and documented. The repository also includes
-CPU-only llama.cpp notes and RTX 4090 vLLM smoke/load artifacts to show how
-mock results differ from real backends.
-The curated benchmark write-up lives in `docs/benchmark_report.md`; raw JSON
-artifacts live under `benchmarks/results/`.
+CPU-only llama.cpp notes and RTX 4090 vLLM smoke, load, and native-concurrency
+artifacts to show how mock results differ from real backends. See the curated
+[benchmark report](docs/benchmark_report.md) and the
+[raw JSON artifacts](benchmarks/results/).
 
 ## Run Locally
 
