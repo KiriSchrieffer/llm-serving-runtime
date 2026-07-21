@@ -6,37 +6,74 @@ kept as JSON under `benchmarks/results/`. The helper script
 JSON files, but generated Markdown is ignored by git so this document remains the
 single narrative benchmark report.
 
-## RTX 4090 vLLM GPU Smoke/Load Test
+## RTX 4090 vLLM GPU Benchmarks
 
-Recorded on June 20, 2026 on a single NVIDIA GeForce RTX 4090 using the vLLM
-backend and `Qwen/Qwen2.5-0.5B-Instruct`. The model was downloaded to a local
-`models/` directory, then served through this runtime's FastAPI API, scheduler,
-worker, and vLLM backend adapter. Each request used `max_tokens=32`.
+These runs used a single NVIDIA GeForce RTX 4090 and
+`Qwen/Qwen2.5-0.5B-Instruct`, served through this runtime's FastAPI API,
+scheduler, worker manager, and vLLM backend adapter. Each measured request used
+`max_tokens=32`. The June 20, 2026 artifact predates native-backend worker
+fan-out and is retained as the single-worker baseline. The July 21, 2026 run
+sets `LLM_RUNTIME_NATIVE_BACKEND_CONCURRENCY=8`, allowing eight runtime workers
+to forward requests concurrently while vLLM performs continuous batching.
 
 Raw result artifacts:
 
 - `benchmarks/results/vllm_gpu_smoke_0_5b.json`
 - `benchmarks/results/vllm_gpu_load_0_5b_c8.json`
 - `benchmarks/results/vllm_gpu_metrics_after_0_5b.json`
+- `benchmarks/results/vllm_gpu_native_concurrency_0_5b_c8.json`
+- `benchmarks/results/vllm_gpu_metrics_after_native_0_5b_c8.json`
 
-| Run | Requests | Concurrency | Tokens/s | P50 latency ms | P95 latency ms | Avg TTFT ms | Avg total latency ms | Failed |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Smoke | 16 | 4 | 417.6 | 206.3 | 290.7 | 127.2 | 182.8 | 0 |
-| Load | 32 | 8 | 426.2 | 326.6 | 539.6 | 250.5 | 302.3 | 0 |
+### Native concurrency comparison
 
-The post-run metrics snapshot reported `gpu.status=available` with one RTX
-4090, 24,564 MB total GPU memory, and 21,074 MB used by the vLLM-backed runtime.
-`nvidia-smi` utilization in the saved snapshot was 0% because it was captured
-after the load test had completed.
+| Run | Runtime workers | Requests | Concurrency | Tokens/s | P50 latency ms | P95 latency ms | Avg TTFT ms | Avg queue wait ms | Avg total latency ms | Failed |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Single-worker baseline | 1 | 32 | 8 | 426.2 | 326.6 | 539.6 | 250.5 | 235.2 | 302.3 | 0 |
+| Native concurrency c8 | 8 | 32 | 8 | 1630.9 | 124.7 | 177.1 | 38.7 | 0.79 | 109.5 | 0 |
 
-This is a real GPU backend integration result, not a vLLM maximum-throughput
-tuning run. It was recorded before native-backend worker fan-out was added, so
-the saved artifact is retained as a single-worker vLLM baseline. The runtime
-marks vLLM as `NATIVE_BATCHING`, so software-layer micro-batching is bypassed
-and the recorded batch size remains 1. The result is best interpreted as
-evidence that the project can launch vLLM, route real model requests, stream
-completions, collect GPU metrics, and save reproducible latency/throughput
-artifacts on cloud GPU hardware.
+Native concurrency delivered 3.83x the observed throughput while reducing P50
+latency by 61.8%, P95 latency by 67.2%, average TTFT by 84.5%, average queue
+wait by 99.7%, and average total latency by 63.8%. The queue-wait reduction is
+consistent with removing the runtime's single-worker serialization bottleneck:
+requests can reach the native-batching backend concurrently instead of waiting
+behind one upstream call.
+
+Both artifacts report `batch_size_avg=1.0` and `batch_size_max=1`. This is
+expected: the runtime deliberately bypasses its own micro-batching for a
+`NATIVE_BATCHING` backend. Runtime workers provide request fan-out, while vLLM
+owns continuous batching internally.
+
+### Native run environment and metrics
+
+The native-concurrency run used project commit `57d9e96` with Python 3.10,
+PyTorch `2.11.0+cu130`, vLLM `0.25.1`, CUDA 13.0, NVIDIA driver `580.126.20`,
+and 24,564 MiB of RTX 4090 memory. The project declares Python 3.11 or newer;
+this cloud image used a `typing_extensions.NotRequired` compatibility injection
+to load the runtime under Python 3.10. The injected symbol is type metadata and
+does not alter scheduling or inference behavior, but Python 3.11+ should be used
+when reproducing the run.
+
+The post-run metrics snapshot contains 33 completed requests with no failures
+or rejections: one 8-token warm-up plus the 32-request measured workload. Its
+946 generated tokens likewise equal the 8 warm-up tokens plus the benchmark's
+938 tokens. At snapshot time, queue size and active requests were both zero.
+Queue-wait P50/P95 were 0.65/1.65 ms, TTFT P50/P95 were 35.1/58.1 ms, and total
+latency P50/P95 were 103.9/151.8 ms. The sampler reported `gpu.status=available`
+with 21,842 MiB used. Its 0% utilization value is an idle point-in-time reading
+captured after the workload, not average utilization during inference.
+
+### Scope and limitations
+
+This is a real GPU serving-path benchmark, not a maximum-throughput vLLM tuning
+run. The baseline did not record its Python, PyTorch, vLLM, CUDA, and driver
+versions, so the comparison is not a fully version-locked A/B test. The 3.83x
+result should therefore be described as an observed improvement under the same
+GPU model, model checkpoint, request count, concurrency, and output-token
+limit, rather than attributed exclusively to worker fan-out. The 0.5B model,
+32-token outputs, and 32-request workload also favor integration validation
+over sustained-capacity characterization. A future controlled rerun should
+capture both worker-count configurations on the same machine and software
+environment and sample GPU utilization throughout the workload.
 
 ## First Mock Backend Comparison
 
